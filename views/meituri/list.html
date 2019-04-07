@@ -1,0 +1,10 @@
+{{template "layout" .}}
+{{define "content"}}
+    <h1>List Page</h1>
+
+    <ul>
+        {{range .suiteList}}
+            <li><a href="/meituri/{{.Folder}}">{{.Folder}}</a></li>
+        {{end}}
+    </ul>
+{{end}}

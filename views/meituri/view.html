@@ -1,0 +1,10 @@
+{{template "layout" .}}
+{{define "content"}}
+    <p>{{.suite.Folder}}</p>
+
+    <ul class="list-group">
+        {{range .suite.Images}}
+            <li class="list-group-item"><img src="{{.Path}}" class="img-fluid" alt="{{.Title}}"></li>
+        {{end}}
+    </ul>
+{{end}}
