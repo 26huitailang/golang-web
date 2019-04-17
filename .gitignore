@@ -12,3 +12,5 @@
 *.out
 
 custom.conf
+
+vendor/
