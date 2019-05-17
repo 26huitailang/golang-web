@@ -1,0 +1,8 @@
+{{define "content"}}
+    <h2>{{.Name}}</h2>
+    <ul>
+        {{range .Images}}
+            <li><img src="/image/{{.Path}}" alt="?"/></li>
+        {{end}}
+    </ul>
+{{end}}
