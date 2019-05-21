@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var config Configuration
