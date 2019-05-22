@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine
+FROM golang:1.12
 
 ADD . /go/src/github.com/26huitailang/golang-web
 WORKDIR /go/src/github.com/26huitailang/golang-web
