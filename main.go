@@ -7,7 +7,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
+	"syscall"
+	"time"
 
+	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/feixiao/httpprof"
 	"github.com/julienschmidt/httprouter"
 )
@@ -101,12 +105,40 @@ func index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	http.Redirect(w, r, "/themes", 301)
 }
 
+func startChild1() {
+	cmd := exec.Command("/bin/sh", "-c", "sleep 1000")
+	time.AfterFunc(10*time.Second, func() {
+		fmt.Println("PID1=", cmd.Process.Pid)
+		syscall.Kill(-cmd.Process.Pid, syscall.SIGQUIT)
+		fmt.Println("killed")
+	})
+	fmt.Println("begin run")
+	cmd.Run()
+}
+func startChild2() {
+	for index := 0; index < 10; index++ {
+		time.Sleep(1 * time.Second)
+		fmt.Println(index)
+	}
+}
+
+func task1(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	go startChild1()
+	go startChild2()
+	go func() {
+		s := suite.NewSuite("https://www.meituri.com/a/26718/")
+		suite.DonwloadSuite(s, 5, "/Users/26huitailang/Downloads/mzitu_go", s.Title)
+	}()
+	fmt.Fprint(w, "task running")
+}
+
 func main() {
 	mux := httprouter.New()
 	// profiling
 	mux = httpprof.WrapRouter(mux)
 	mux.GET("/", index)
 	mux.GET("/hello/:name", hello)
+	mux.GET("/task", task1)
 	mux.GET("/themes", themes)
 	mux.GET("/themes/:name", theme)
 	mux.GET("/themes/:name/suites/:suite", suites)

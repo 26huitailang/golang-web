@@ -21,6 +21,7 @@
 - 使用ab或wrk伪造持续的请求，以ab为例，持续120秒，每次发送10个请求：
 
     ab -t 120 -c 10 -m GET http://127.0.0.1:8080
+
 - 在网站访问`http://127.0.0.1:8080/debug/pprof/profile`或者在命令行：
 
     go tool pprof http://127.0.0.1:8080/debug/pprof/profile
