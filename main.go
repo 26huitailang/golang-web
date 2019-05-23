@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/feixiao/httpprof"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -102,6 +103,8 @@ func index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func main() {
 	mux := httprouter.New()
+	// profiling
+	mux = httpprof.WrapRouter(mux)
 	mux.GET("/", index)
 	mux.GET("/hello/:name", hello)
 	mux.GET("/themes", themes)
@@ -109,6 +112,7 @@ func main() {
 	mux.GET("/themes/:name/suites/:suite", suites)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
 	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
+
 	addr := fmt.Sprintf("%s:%s", config.IP, config.Port)
 	fmt.Printf("serve: http://%s", addr)
 	server := http.Server{

@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:ce2c1e8a17646af2ef762768478b4b150b803d832ca13423ece75f2a0598e173"
+  name = "github.com/feixiao/httpprof"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ecd07c65a974479bcda7de7d290b89f1743168"
+
+[[projects]]
   digest = "1:f97285a3b0a496dcf8801072622230d513f69175665d94de60eb042d03387f6c"
   name = "github.com/julienschmidt/httprouter"
   packages = ["."]
@@ -12,6 +20,9 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/julienschmidt/httprouter"]
+  input-imports = [
+    "github.com/feixiao/httpprof",
+    "github.com/julienschmidt/httprouter",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
