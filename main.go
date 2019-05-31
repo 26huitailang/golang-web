@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -115,6 +116,7 @@ func startChild1() {
 	fmt.Println("begin run")
 	cmd.Run()
 }
+
 func startChild2() {
 	for index := 0; index < 10; index++ {
 		time.Sleep(1 * time.Second)
@@ -122,14 +124,34 @@ func startChild2() {
 	}
 }
 
-func task1(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	go startChild1()
-	go startChild2()
+func taskSuite(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// go startChild1()
+	// go startChild2()
 	go func() {
 		s := suite.NewSuite("https://www.meituri.com/a/26718/")
 		suite.DonwloadSuite(s, 5, "/Users/26huitailang/Downloads/mzitu_go", s.Title)
 	}()
-	fmt.Fprint(w, "task running")
+	fmt.Fprint(w, "task suite sent ...")
+}
+
+func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// url := p.ByName("url")
+	var form struct {
+		URL string `json:"url"`
+	}
+	// _ = r.ParseForm()
+	err := json.NewDecoder(r.Body).Decode(&form)
+	if err != nil {
+		fmt.Fprintf(w, "error: %s", err)
+	}
+	log.Println(form)
+
+	go func() {
+		t := suite.NewTheme(form.URL, config.BasePath)
+		t.DownloadOneTheme()
+		fmt.Printf("%v", t)
+	}()
+	fmt.Fprint(w, "task theme sent ...")
 }
 
 func main() {
@@ -138,7 +160,8 @@ func main() {
 	mux = httpprof.WrapRouter(mux)
 	mux.GET("/", index)
 	mux.GET("/hello/:name", hello)
-	mux.GET("/task", task1)
+	mux.POST("/task/suite", taskSuite)
+	mux.POST("/task/theme", taskTheme)
 	mux.GET("/themes", themes)
 	mux.GET("/themes/:name", theme)
 	mux.GET("/themes/:name/suites/:suite", suites)
@@ -146,7 +169,7 @@ func main() {
 	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 
 	addr := fmt.Sprintf("%s:%s", config.IP, config.Port)
-	fmt.Printf("serve: http://%s", addr)
+	fmt.Printf("serve: http://%s\n", addr)
 	server := http.Server{
 		Addr:    addr,
 		Handler: mux,

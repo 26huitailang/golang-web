@@ -83,11 +83,13 @@ func IsFile(path string) bool {
 
 // 获取每页的Html内容
 func getURLContent(url string) []byte {
-	resp, _ := http.Get(url)
+	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
+	checkError(err)
+	body, err := ioutil.ReadAll(resp.Body)
+	checkError(err)
 	// fmt.Println(string(body))
 	return body
 }

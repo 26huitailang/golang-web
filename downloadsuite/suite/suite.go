@@ -38,7 +38,8 @@ func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, ti
 	isFolderExist := IsFileOrFolderExists(suiteFolderPath)
 	if !isFolderExist {
 		fmt.Println("创建文件夹: ", suiteFolderPath)
-		_ = os.MkdirAll(suiteFolderPath, os.ModePerm)
+		err := os.MkdirAll(suiteFolderPath, os.ModePerm)
+		checkError(err)
 	}
 
 	var chDownloads []<-chan string

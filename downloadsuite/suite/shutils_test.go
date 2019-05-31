@@ -21,10 +21,10 @@ func TestGetImgUrls(t *testing.T) {
 	}
 }
 
-func TestNewMeituriSuite(t *testing.T) {
+func TestNewSuite(t *testing.T) {
 	// todo: 试试gomock工具
 	suiteURL := "https://www.meituri.com/a/26718/"
 	title := "黑丝亮皮连衣超短裙 [森萝财团] [BETA-038] 写真集"
-	suite := NewMeituriSuite(suiteURL)
+	suite := NewSuite(suiteURL)
 	assert.Equal(t, suite.Title, title, "Title should be the same.")
 }
