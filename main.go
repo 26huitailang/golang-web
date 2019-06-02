@@ -14,11 +14,13 @@ import (
 
 	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/feixiao/httpprof"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/julienschmidt/httprouter"
 )
 
 var config Configuration
-var Theme map[string][]*Suite
+var DB *gorm.DB
 
 type Configuration struct {
 	BasePath string `json:"base_path"`
@@ -26,20 +28,26 @@ type Configuration struct {
 	Port     string `json:"port"`
 }
 
-type Suite struct {
-	Name   string
-	Images []Image
-}
-
-type Image struct {
-	Path string
-}
-
 // 初始化文件结构
 func init() {
-	Theme = make(map[string][]*Suite)
+	// Theme = make(map[string][]*Suite)
 	InitConfiguration()
-	InitTheme(&config)
+	// InitTheme(&config)
+	// DB 小心:= 覆盖了声明的全局变量
+	var err error
+	DB, err = gorm.Open("sqlite3", "test.db")
+	if err != nil {
+		panic("DB connect error!")
+	}
+	// defer DB.Close()
+
+	// 迁移
+	DB.SingularTable(true) // 单数表名
+	DB.AutoMigrate(&Theme{}, &Suite{}, &Image{})
+	err = DB.Model(&Image{}).DropColumn("IsRead").Error
+	if err != nil {
+		panic(err)
+	}
 }
 
 func InitConfiguration() {
@@ -63,14 +71,16 @@ func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 func themes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	var keys []string
-	//a := map[string]*Suite{"a": &Suite{}, "b": &Suite{}}
-	for k := range Theme {
-		keys = append(keys, k)
-	}
+	// var keys []string
+	// for k := range Theme {
+	// 	keys = append(keys, k)
+	// }
+	var themes []Theme
+	DB.Order("name").Find(&themes)
+
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/themes.html")
-	t.ExecuteTemplate(w, "layout", keys)
+	t.ExecuteTemplate(w, "layout", themes)
 	//fmt.Fprintf(w, "%s\n", keys)
 }
 
@@ -79,23 +89,36 @@ func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
+	var suites []Suite
+	DB.Order("name").Find(&suites)
 	data := struct {
 		Name   string
-		Suites []*Suite
+		Suites []Suite
 	}{
-		name, Theme[name],
+		name,
+		suites,
 	}
 	t.ExecuteTemplate(w, "layout", data)
 }
 
 func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	themeName := p.ByName("name")
+	// themeName := p.ByName("name")
 	suiteName := p.ByName("suite")
-	var data *Suite
-	for _, n := range Theme[themeName] {
-		if n.Name == suiteName {
-			data = n
-		}
+	var suite Suite
+	var images []Image
+	// for _, n := range Theme[themeName] {
+	// 	if n.Name == suiteName {
+	// 		data = n
+	// 	}
+	// }
+	DB.Where("name = ?", suiteName).Find(&suite)
+	DB.Model(&suite).Related(&images).Order("name")
+	data := struct {
+		Name   string
+		Images []Image
+	}{
+		suite.Name,
+		images,
 	}
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/suite.html")
@@ -154,6 +177,14 @@ func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprint(w, "task theme sent ...")
 }
 
+func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	// todo websocket
+	// DB.DropTableIfExists(Theme{}, Suite{}, Image{})
+	log.Println("start init db ...")
+	InitTheme(&config)
+	fmt.Fprint(w, "finish init db!\n")
+}
+
 func main() {
 	mux := httprouter.New()
 	// profiling
@@ -165,6 +196,7 @@ func main() {
 	mux.GET("/themes", themes)
 	mux.GET("/themes/:name", theme)
 	mux.GET("/themes/:name/suites/:suite", suites)
+	mux.POST("/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
 	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 
