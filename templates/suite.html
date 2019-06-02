@@ -1,8 +1,19 @@
 {{define "content"}}
-    <h2>{{.Name}}</h2>
-    <ul>
-        {{range .Images}}
-            <li><img src="/image/{{.Path}}" alt="?"/></li>
-        {{end}}
-    </ul>
+
+<div class="container">
+    <div class="row">
+        <h5 style="margin: 0 auto">{{.Name}}</h5>
+    </div>
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-xs-12 col-md-8">
+            <ul class="list-group">
+                {{range .Images}}
+                <li class="list-group-item"><img src="/image/{{.Path}}" style="width: 100%" alt="?" /></li>
+                {{end}}
+            </ul>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
 {{end}}

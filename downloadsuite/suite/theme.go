@@ -64,7 +64,7 @@ func (t *Theme) String() string {
 func (t *Theme) genPages() {
 	// https://www.meituri.com/x/82/
 	// https://www.meituri.com/x/82/index_1.html
-	for index := 0; index < t.MaxPage+1; index++ {
+	for index := 0; index < t.MaxPage; index++ {
 		switch index {
 		case 0:
 			t.Pages <- t.FirstURL
