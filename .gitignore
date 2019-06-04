@@ -12,3 +12,9 @@
 *.out
 
 vendor
+
+# sqlite
+test.db
+
+# custom config
+config_custom.json

@@ -1,7 +1,7 @@
 {{define "content"}}
-    <ul>
+    <ul class="list-group">
         {{range .}}
-            <li><a href="themes/{{.}}">{{.}}</a></li>
+            <li class="list-group-item"><a href="themes/{{.Name}}">{{.Name}}</a></li>
         {{end}}
     </ul>
 {{end}}
