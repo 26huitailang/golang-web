@@ -29,3 +29,18 @@
     go tool pprof http://127.0.0.1:8080/debug/pprof/profile
 
 - 默认30s持续时间，可以用`?time=60`来控制，结束后浏览器访问会下载一个profile文件，命令行会直接进入交互模式。（下载的文件用`go tool pprof profile`来使用）
+
+## sqlite3
+
+使用sqlite的话，交叉编译要把CGO_ENABLED=1，因为依赖了C代码，但是又需要额外的gcc参数，`CC=arm-linux-gnueabi-gcc`，要额外安装，比较麻烦，可以研究使用docker编译。
+
+## docker build
+
+用了树莓派，为了更方便的build对应的平台，考虑用docker来build。
+
+问题：
+
+- 拷贝依赖包，不需要dep步骤？
+- 怎么准备一个golang docker
+  - linux平台，apt安装一个arm-linux-gnueabi-gcc？
+- makefile增加一个release选项，直接在树莓派中拉代码docker run？
