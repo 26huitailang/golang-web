@@ -6,6 +6,7 @@ GOTEST=$(GOCMD) test
 GOBENCHMARK=$(GOTEST) -bench .
 GOGET=$(GOCMD) get
 GOTOOL=$(GOCMD) tool
+GODEP=dep
 BINARY_NAME=main
 BINARY_LINUX=$(BINARY_NAME)_linux
 BINARY_ARM=$(BINARY_LINUX)_arm
@@ -24,13 +25,14 @@ clean:
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v
 	./$(BINARY_NAME)
-deps:
-	# todo 不用go get，改为dep
-	$(GOGET) github.com/markbates/goth
-	$(GOGET) github.com/markbates/pop
-# todo benchmark go test -bench .
 benchmark:
 	$(GOBENCHMARK)
+
+# dependence
+deps:
+	$(GODEP) ensure
+deps-install:
+	curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 # Cross compilation
 build-linux:

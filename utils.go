@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 
@@ -24,7 +25,6 @@ func InitTheme(conf *Configuration) {
 	dir, _ := ioutil.ReadDir(conf.BasePath)
 	finish := make(chan themeInfo)
 	var wg sync.WaitGroup
-	println("init:", DB)
 	tx := DB.Begin()
 	for _, folder := range dir {
 		if !folder.IsDir() {
@@ -51,7 +51,7 @@ func InitTheme(conf *Configuration) {
 			tx.Rollback()
 			panic(tInfo.Error)
 		}
-		log.Println("finish init db:", tInfo.Name)
+		log.Println("theme inited:", tInfo.Name)
 	}
 	tx.Commit()
 }
@@ -103,4 +103,14 @@ func initImageBySuite(tx *gorm.DB, suite *Suite, suitePath string) (n int, err e
 		return n, err
 	}
 	return n, nil
+}
+
+func Struct2Map(obj interface{}) map[string]interface{} {
+	t := reflect.TypeOf(obj)
+	v := reflect.ValueOf(obj)
+	data := make(map[string]interface{})
+	for i := 0; i < t.NumField(); i++ {
+		data[t.Field(i).Name] = v.Field(i).Interface()
+	}
+	return data
 }

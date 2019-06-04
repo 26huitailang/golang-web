@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"reflect"
 	"syscall"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var config Configuration
+var config *Configuration
 var DB *gorm.DB
 
 type Configuration struct {
@@ -30,40 +31,67 @@ type Configuration struct {
 
 // 初始化文件结构
 func init() {
-	// Theme = make(map[string][]*Suite)
-	InitConfiguration()
-	// InitTheme(&config)
+	initConfiguration()
 	// DB 小心:= 覆盖了声明的全局变量
 	var err error
 	DB, err = gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("DB connect error!")
 	}
-	// defer DB.Close()
 
 	// 迁移
 	DB.SingularTable(true) // 单数表名
 	DB.AutoMigrate(&Theme{}, &Suite{}, &Image{})
-	err = DB.Model(&Image{}).DropColumn("IsRead").Error
-	if err != nil {
-		panic(err)
-	}
+	// sqlite 对alter table的支持有限，不支持rename column和remove column
+	// err = DB.Model(&Image{}).DropColumn("IsRead").Error
 }
 
-func InitConfiguration() {
+// 加载默认配置config.json
+func initConfiguration() {
 	jsonFile, err := os.Open("config.json")
 	if err != nil {
-		fmt.Println("Error opening JSON file:", err)
-		return
+		log.Fatal("Error opening JSON file:", err)
 	}
 	defer jsonFile.Close()
 	jsonData, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
-		fmt.Println("Error reading JSON data:", err)
-		return
+		log.Fatal("Error reading JSON data:", err)
 	}
 	json.Unmarshal(jsonData, &config)
-	fmt.Println(config)
+	initCustomConfig()
+	log.Println("config:", config)
+}
+
+// 加载自定义配置，覆盖默认配置
+func initCustomConfig() {
+	// 文件是否存在
+	file, err := os.Open("config_custom.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	// 读取json为map
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// var customConfig Configuration
+	var customMap map[string]interface{}
+	json.Unmarshal(data, &customMap)
+	// log.Printf("custom config: %v", customMap)
+
+	// 遍历config结构体，判断是否有覆盖内容
+	t := reflect.TypeOf(config).Elem()
+	v := reflect.ValueOf(config).Elem()
+	for i := 0; i < t.NumField(); i++ {
+		// 比较tag
+		fieldInfo := t.Field(i)
+		tag := fieldInfo.Tag.Get("json")
+		if value, ok := customMap[tag]; ok {
+			log.Printf("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
+			v.FieldByName(fieldInfo.Name).Set(reflect.ValueOf(value))
+		}
+	}
 }
 
 func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -179,9 +207,12 @@ func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	// todo websocket
-	// DB.DropTableIfExists(Theme{}, Suite{}, Image{})
+	log.Println("droppig table ...")
+	DB.DropTableIfExists(Theme{}, Suite{}, Image{})
+	log.Println("migrating table ...")
+	DB.AutoMigrate(Theme{}, Suite{}, Image{})
 	log.Println("start init db ...")
-	InitTheme(&config)
+	InitTheme(config)
 	fmt.Fprint(w, "finish init db!\n")
 }
 
