@@ -274,14 +274,14 @@ func main() {
 		return c.String(http.StatusOK, resp)
 	})
 
-	e.POST("/task/suite", taskSuite)
-	e.POST("/task/theme", taskTheme)
+	// e.POST("/task/suite", taskSuite)
+	// e.POST("/task/theme", taskTheme)
 
 	e.GET("/themes", themes)
 	e.GET("/themes/:id", theme)
 	e.GET("/themes/:theme_id/suites/:suite_id", suiteHandle)
 
-	e.POST("/devops/initdb", initDB)
+	// e.POST("/devops/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
 	// e.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 	e.Static("/image/*filepath", config.BasePath)
