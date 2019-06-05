@@ -20,7 +20,6 @@ import (
 	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/julienschmidt/httprouter"
 )
 
 var config *Configuration
@@ -106,26 +105,20 @@ func initCustomConfig() {
 	}
 }
 
-func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-
-}
-
-func themes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// var keys []string
-	// for k := range Theme {
-	// 	keys = append(keys, k)
-	// }
+func themes(c echo.Context) (err error) {
 	var themes []Theme
 	DB.Order("name").Find(&themes)
 
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/themes.html")
-	t.ExecuteTemplate(w, "layout", themes)
+	// t.ExecuteTemplate(w, "layout", themes)
+	c.Render(http.StatusOK, "layout", themes)
 	//fmt.Fprintf(w, "%s\n", keys)
+	return
 }
 
-func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	name := p.ByName("name")
+func theme(c echo.Context) (err error) {
+	name := c.Param("name")
 
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
@@ -141,12 +134,15 @@ func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		name,
 		suites,
 	}
-	t.ExecuteTemplate(w, "layout", data)
+	// t.ExecuteTemplate(w, "layout", data)
+	c.Render(http.StatusOK, "layout", data)
+	return
 }
 
-func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func suites(c echo.Context) (err error) {
 	// themeName := p.ByName("name")
-	suiteName := p.ByName("suite")
+	// suiteName := p.ByName("suite")
+	suiteName := c.Param("suite")
 	var suite Suite
 	var images []Image
 	// for _, n := range Theme[themeName] {
@@ -168,8 +164,9 @@ func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	t.ExecuteTemplate(w, "layout", data)
 }
 
-func index(c echo.Context) {
-	http.Redirect(w, r, "/themes", 301)
+func index(c echo.Context) (err error) {
+	http.Redirect(c.Response(), c.Request(), "/themes", 301)
+	return nil
 }
 
 func startChild1() {
@@ -190,7 +187,7 @@ func startChild2() {
 	}
 }
 
-func taskSuite(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func taskSuite(c echo.Context) (err error) {
 	// go startChild1()
 	// go startChild2()
 	go func() {
@@ -200,13 +197,11 @@ func taskSuite(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	fmt.Fprint(w, "task suite sent ...")
 }
 
-func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// url := p.ByName("url")
+func taskTheme(c echo.Context) (err error) {
 	var form struct {
 		URL string `json:"url"`
 	}
-	// _ = r.ParseForm()
-	err := json.NewDecoder(r.Body).Decode(&form)
+	err = json.NewDecoder(r.Body).Decode(&form)
 	if err != nil {
 		fmt.Fprintf(w, "error: %s", err)
 	}
@@ -218,9 +213,10 @@ func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		fmt.Printf("%v", t)
 	}()
 	fmt.Fprint(w, "task theme sent ...")
+	return
 }
 
-func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func initDB(c echo.Context) (err error) {
 	// todo websocket
 	log.Println("droppig table ...")
 	DB.DropTableIfExists(Theme{}, Suite{}, Image{})
@@ -247,16 +243,16 @@ func main() {
 		// fmt.Fprintf(w, "hello, %s!\n", p.ByName("name"))
 	})
 
-	mux.POST("/task/suite", taskSuite)
-	mux.POST("/task/theme", taskTheme)
+	e.POST("/task/suite", taskSuite)
+	e.POST("/task/theme", taskTheme)
 
-	mux.GET("/themes", themes)
-	mux.GET("/themes/:name", theme)
-	mux.GET("/themes/:name/suites/:suite", suites)
+	e.GET("/themes", themes)
+	e.GET("/themes/:name", theme)
+	e.GET("/themes/:name/suites/:suite", suites)
 
-	mux.POST("/devops/initdb", initDB)
+	e.POST("/devops/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
-	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
+	e.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 
 	addr := fmt.Sprintf("%s:%s", config.IP, config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
