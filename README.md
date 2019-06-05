@@ -38,9 +38,21 @@
 
 用了树莓派，为了更方便的build对应的平台，考虑用docker来build。
 
-问题：
+步骤：
 
-- 拷贝依赖包，不需要dep步骤？
-- 怎么准备一个golang docker
-  - linux平台，apt安装一个arm-linux-gnueabi-gcc？
-- makefile增加一个release选项，直接在树莓派中拉代码docker run？
+- 准备一个镜像，安装了go和gcc-arm-linux-gnueabi等工具（记得apt clean）
+  - [dockerfile参考](https://github.com/cloudfoundry-incubator/diego-dockerfiles/tree/master/golang-ci/Dockerfile)
+  - go build -t golang:1.12 . ，构建新的镜像
+- 将makefile调用的docker换到本地构建好的docker上，构建好的文件会出现在本地目录
+
+```dockerfile
+FROM golang:1.12
+
+ADD . /go/src/github.com/26huitailang/golang-web
+WORKDIR /go/src/github.com/26huitailang/golang-web
+
+# arm build
+RUN apt update
+RUN apt install gcc-arm-linux-gnueabi -y
+RUN apt clean
+```
