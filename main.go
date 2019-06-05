@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
-	"log"
+
+	// "log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -13,8 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/26huitailang/golang-web/downloadsuite/suite"
-	"github.com/feixiao/httpprof"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/julienschmidt/httprouter"
@@ -31,9 +34,18 @@ type Configuration struct {
 
 // 初始化文件结构
 func init() {
+	var err error
+	// log
+	// logfile, err := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// if err == nil {
+	// 	log.SetOutput(logfile)
+	// } else {
+	// 	log.Info("Failed to log to file, using default stderr")
+	// }
+	// log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.DebugLevel)
 	initConfiguration()
 	// DB 小心:= 覆盖了声明的全局变量
-	var err error
 	DB, err = gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		log.Panicf("DB connect error: %s", err)
@@ -95,7 +107,7 @@ func initCustomConfig() {
 }
 
 func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fmt.Fprintf(w, "hello, %s!\n", p.ByName("name"))
+
 }
 
 func themes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -117,8 +129,11 @@ func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 	var t *template.Template
 	t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
+	var theme Theme
 	var suites []Suite
-	DB.Order("name").Find(&suites)
+	DB.Where("name = ?", name).First(&theme)
+	DB.Model(&theme).Related(&suites).Order("name")
+	log.Debugf("theme api suites[%s]: %v", name, suites)
 	data := struct {
 		Name   string
 		Suites []Suite
@@ -153,7 +168,7 @@ func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	t.ExecuteTemplate(w, "layout", data)
 }
 
-func index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func index(c echo.Context) {
 	http.Redirect(w, r, "/themes", 301)
 }
 
@@ -217,17 +232,29 @@ func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 }
 
 func main() {
-	mux := httprouter.New()
+	// mux := httprouter.New()
+	e := echo.New()
+
+	// e.Use(middleware.Logger())
 	// profiling
-	mux = httpprof.WrapRouter(mux)
-	mux.GET("/", index)
-	mux.GET("/hello/:name", hello)
+	// mux = httpprof.WrapRouter(mux)
+	// mux.NotFound = http.HandlerFunc(views.PageNotFound404)
+	e.GET("/", index)
+	e.GET("/hello/:name", func(c echo.Context) error {
+		name := c.Param("name")
+		resp := fmt.Sprintf("Hello, %s!", name)
+		return c.String(http.StatusOK, resp)
+		// fmt.Fprintf(w, "hello, %s!\n", p.ByName("name"))
+	})
+
 	mux.POST("/task/suite", taskSuite)
 	mux.POST("/task/theme", taskTheme)
+
 	mux.GET("/themes", themes)
 	mux.GET("/themes/:name", theme)
 	mux.GET("/themes/:name/suites/:suite", suites)
-	mux.POST("/initdb", initDB)
+
+	mux.POST("/devops/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
 	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 
