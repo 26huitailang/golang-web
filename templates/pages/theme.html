@@ -1,8 +1,8 @@
 {{define "content"}}
-    <h2>{{.Name}}</h2>
+    <h2>{{.Theme.Name}}</h2>
     <ul class="list-group">
         {{range .Suites}}
-            <li class="list-group-item"><a href="{{$.Name}}/suites/{{.Name}}">{{.Name}}</a></li>
+            <li class="list-group-item"><a href="{{$.Theme.ID}}/suites/{{.ID}}">{{.Name}}</a></li>
         {{end}}
     </ul>
 {{end}}

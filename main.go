@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -121,31 +122,38 @@ func themes(c echo.Context) (err error) {
 }
 
 func theme(c echo.Context) (err error) {
-	name := c.Param("name")
+	themeID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.Redirect(404, "/")
+	}
 
 	// var t *template.Template
 	// t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
 	var theme Theme
 	var suites []Suite
-	DB.Where("name = ?", name).First(&theme)
+	DB.Where("id = ?", themeID).First(&theme)
 	DB.Model(&theme).Related(&suites).Order("name")
-	log.Debugf("theme api suites[%s]: %v", name, suites)
+	log.Debugf("theme api suites[%s]: %v", theme.Name, suites)
 	data := struct {
-		Name   string
+		Theme  Theme
 		Suites []Suite
 	}{
-		name,
+		theme,
 		suites,
 	}
 	// t.ExecuteTemplate(w, "layout", data)
-	c.Render(http.StatusOK, "layout:theme", data)
-	return
+	return c.Render(http.StatusOK, "layout:theme", data)
 }
 
-func suites(c echo.Context) (err error) {
+func suiteHandle(c echo.Context) (err error) {
 	// themeName := p.ByName("name")
 	// suiteName := p.ByName("suite")
-	suiteName := c.Param("suite")
+	var sutieID int
+	sutieID, err = strconv.Atoi(c.Param("suite_id"))
+	if err != nil {
+		return c.Redirect(http.StatusNotFound, "/")
+	}
+	log.Debugf("suiteID: %d", sutieID)
 	var suite Suite
 	var images []Image
 	// for _, n := range Theme[themeName] {
@@ -153,8 +161,10 @@ func suites(c echo.Context) (err error) {
 	// 		data = n
 	// 	}
 	// }
-	DB.Where("name = ?", suiteName).Find(&suite)
+	DB.Where("id = ?", sutieID).Find(&suite)
+	log.Debugf("suite: %v", suite)
 	DB.Model(&suite).Related(&images).Order("name")
+	log.Debugf("images: %v", images)
 	data := struct {
 		Name   string
 		Images []Image
@@ -218,8 +228,7 @@ func taskTheme(c echo.Context) (err error) {
 		fmt.Printf("%v", t)
 	}()
 	// fmt.Fprint(w, "task theme sent ...")
-	c.String(http.StatusAccepted, "task theme sent ...")
-	return
+	return c.String(http.StatusAccepted, "task theme sent ...")
 }
 
 func initDB(c echo.Context) (err error) {
@@ -269,8 +278,8 @@ func main() {
 	e.POST("/task/theme", taskTheme)
 
 	e.GET("/themes", themes)
-	e.GET("/themes/:name", theme)
-	e.GET("/themes/:name/suites/:suite", suites)
+	e.GET("/themes/:id", theme)
+	e.GET("/themes/:theme_id/suites/:suite_id", suiteHandle)
 
 	e.POST("/devops/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
