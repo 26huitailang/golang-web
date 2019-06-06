@@ -3,21 +3,22 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
 	"os/exec"
-	"reflect"
 	"syscall"
 	"time"
 
+	// "log"
+	"net/http"
+	"os"
+	"reflect"
+
 	"github.com/26huitailang/golang-web/downloadsuite/suite"
-	"github.com/feixiao/httpprof"
+	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/julienschmidt/httprouter"
 )
 
 var config *Configuration
@@ -31,12 +32,21 @@ type Configuration struct {
 
 // 初始化文件结构
 func init() {
+	var err error
+	// log
+	// logfile, err := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	// if err == nil {
+	// 	log.SetOutput(logfile)
+	// } else {
+	// 	log.Info("Failed to log to file, using default stderr")
+	// }
+	// log.SetFormatter(&log.JSONFormatter{})
+	log.SetLevel(log.DebugLevel)
 	initConfiguration()
 	// DB 小心:= 覆盖了声明的全局变量
-	var err error
 	DB, err = gorm.Open("sqlite3", "test.db")
 	if err != nil {
-		panic("DB connect error!")
+		log.Panicf("DB connect error: %s", err)
 	}
 
 	// 迁移
@@ -44,6 +54,9 @@ func init() {
 	DB.AutoMigrate(&Theme{}, &Suite{}, &Image{})
 	// sqlite 对alter table的支持有限，不支持rename column和remove column
 	// err = DB.Model(&Image{}).DropColumn("IsRead").Error
+
+	// 模板预加载
+	ReloadTemplates()
 }
 
 // 加载默认配置config.json
@@ -67,7 +80,8 @@ func initCustomConfig() {
 	// 文件是否存在
 	file, err := os.Open("config_custom.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Warn("config_custom.json not existed!\nUse default config.json\n")
+		return
 	}
 	defer file.Close()
 	// 读取json为map
@@ -94,31 +108,28 @@ func initCustomConfig() {
 	}
 }
 
-func hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fmt.Fprintf(w, "hello, %s!\n", p.ByName("name"))
-}
-
-func themes(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// var keys []string
-	// for k := range Theme {
-	// 	keys = append(keys, k)
-	// }
+func themes(c echo.Context) (err error) {
 	var themes []Theme
 	DB.Order("name").Find(&themes)
 
-	var t *template.Template
-	t, _ = template.ParseFiles("templates/layout.html", "templates/themes.html")
-	t.ExecuteTemplate(w, "layout", themes)
+	// var t *template.Template
+	// t, _ = template.ParseFiles("templates/layout.html", "templates/themes.html")
+	// t.ExecuteTemplate(w, "layout", themes)
+	c.Render(http.StatusOK, "layout:themes", themes)
 	//fmt.Fprintf(w, "%s\n", keys)
+	return
 }
 
-func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	name := p.ByName("name")
+func theme(c echo.Context) (err error) {
+	name := c.Param("name")
 
-	var t *template.Template
-	t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
+	// var t *template.Template
+	// t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
+	var theme Theme
 	var suites []Suite
-	DB.Order("name").Find(&suites)
+	DB.Where("name = ?", name).First(&theme)
+	DB.Model(&theme).Related(&suites).Order("name")
+	log.Debugf("theme api suites[%s]: %v", name, suites)
 	data := struct {
 		Name   string
 		Suites []Suite
@@ -126,12 +137,15 @@ func theme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		name,
 		suites,
 	}
-	t.ExecuteTemplate(w, "layout", data)
+	// t.ExecuteTemplate(w, "layout", data)
+	c.Render(http.StatusOK, "layout:theme", data)
+	return
 }
 
-func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func suites(c echo.Context) (err error) {
 	// themeName := p.ByName("name")
-	suiteName := p.ByName("suite")
+	// suiteName := p.ByName("suite")
+	suiteName := c.Param("suite")
 	var suite Suite
 	var images []Image
 	// for _, n := range Theme[themeName] {
@@ -148,13 +162,15 @@ func suites(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		suite.Name,
 		images,
 	}
-	var t *template.Template
-	t, _ = template.ParseFiles("templates/layout.html", "templates/suite.html")
-	t.ExecuteTemplate(w, "layout", data)
+	// var t *template.Template
+	// t, _ = template.ParseFiles("templates/layout.html", "templates/suite.html")
+	// t.ExecuteTemplate(w, "layout", data)
+	return c.Render(200, "layout:suite", data)
 }
 
-func index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	http.Redirect(w, r, "/themes", 301)
+func index(c echo.Context) (err error) {
+	http.Redirect(c.Response(), c.Request(), "/themes", 301)
+	return nil
 }
 
 func startChild1() {
@@ -175,25 +191,24 @@ func startChild2() {
 	}
 }
 
-func taskSuite(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func taskSuite(c echo.Context) (err error) {
 	// go startChild1()
 	// go startChild2()
 	go func() {
 		s := suite.NewSuite("https://www.meituri.com/a/26718/")
 		suite.DonwloadSuite(s, 5, "/Users/26huitailang/Downloads/mzitu_go", s.Title)
 	}()
-	fmt.Fprint(w, "task suite sent ...")
+	// fmt.Fprint(w, "task suite sent ...")
+	return c.String(http.StatusAccepted, "task suite sent ...")
 }
 
-func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	// url := p.ByName("url")
+func taskTheme(c echo.Context) (err error) {
 	var form struct {
 		URL string `json:"url"`
 	}
-	// _ = r.ParseForm()
-	err := json.NewDecoder(r.Body).Decode(&form)
+	err = json.NewDecoder(c.Request().Body).Decode(&form)
 	if err != nil {
-		fmt.Fprintf(w, "error: %s", err)
+		return c.String(500, err.Error())
 	}
 	log.Println(form)
 
@@ -202,10 +217,12 @@ func taskTheme(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
 	}()
-	fmt.Fprint(w, "task theme sent ...")
+	// fmt.Fprint(w, "task theme sent ...")
+	c.String(http.StatusAccepted, "task theme sent ...")
+	return
 }
 
-func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+func initDB(c echo.Context) (err error) {
 	// todo websocket
 	log.Println("droppig table ...")
 	DB.DropTableIfExists(Theme{}, Suite{}, Image{})
@@ -213,29 +230,59 @@ func initDB(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	DB.AutoMigrate(Theme{}, Suite{}, Image{})
 	log.Println("start init db ...")
 	InitTheme(config)
-	fmt.Fprint(w, "finish init db!\n")
+	// fmt.Fprint(w, "finish init db!\n")
+	return c.String(200, "finish init db!\n")
+}
+func customHTTPErrorHandler(err error, c echo.Context) {
+	code := http.StatusInternalServerError
+	if he, ok := err.(*echo.HTTPError); ok {
+		code = he.Code
+	}
+	errorPage := fmt.Sprintf("templates/error/%d.html", code)
+	if err := c.File(errorPage); err != nil {
+		c.Logger().Error(err)
+	}
+	// c.Logger().Error(err)
 }
 
 func main() {
-	mux := httprouter.New()
+	// mux := httprouter.New()
+	e := echo.New()
+
+	var EchoTemplate = &Template{}
+	// e.Renderer = tmpl
+	e.Renderer = EchoTemplate
+
+	// e.Use(middleware.Logger())
 	// profiling
-	mux = httpprof.WrapRouter(mux)
-	mux.GET("/", index)
-	mux.GET("/hello/:name", hello)
-	mux.POST("/task/suite", taskSuite)
-	mux.POST("/task/theme", taskTheme)
-	mux.GET("/themes", themes)
-	mux.GET("/themes/:name", theme)
-	mux.GET("/themes/:name/suites/:suite", suites)
-	mux.POST("/initdb", initDB)
+	// mux = httpprof.WrapRouter(mux)
+	// mux.NotFound = http.HandlerFunc(views.PageNotFound404)
+	e.HTTPErrorHandler = customHTTPErrorHandler
+	e.GET("/", index)
+	e.GET("/hello/:name", func(c echo.Context) error {
+		name := c.Param("name")
+		resp := fmt.Sprintf("Hello, %s!", name)
+		return c.String(http.StatusOK, resp)
+	})
+
+	e.POST("/task/suite", taskSuite)
+	e.POST("/task/theme", taskTheme)
+
+	e.GET("/themes", themes)
+	e.GET("/themes/:name", theme)
+	e.GET("/themes/:name/suites/:suite", suites)
+
+	e.POST("/devops/initdb", initDB)
 	//mux.NotFound = http.FileServer(http.Dir("/"))
-	mux.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
+	// e.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
+	e.Static("/image/*filepath", config.BasePath)
 
 	addr := fmt.Sprintf("%s:%s", config.IP, config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
-	server := http.Server{
-		Addr:    addr,
-		Handler: mux,
-	}
-	server.ListenAndServe()
+	// server := http.Server{
+	// 	Addr:    addr,
+	// 	Handler: mux,
+	// }
+	// server.ListenAndServe()
+	e.Logger.Fatal(e.Start(":8080"))
 }

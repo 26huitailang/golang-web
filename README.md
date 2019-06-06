@@ -10,9 +10,11 @@
 
 ## todo
 
-- [ ] 添加sqlite，初始化的数据放入sqlite，支持一些数据库的排序操作
-- [ ] sql使用Gorm来支持
-- [ ] 考虑使用Echo
+- [ ] zap for log
+- [ ] 403 404
+- [ ] login
+- [x] 添加sqlite，初始化的数据放入sqlite，支持一些数据库的排序操作
+- [x] sql使用Gorm来支持
 
 ## profiling
 
@@ -27,3 +29,30 @@
     go tool pprof http://127.0.0.1:8080/debug/pprof/profile
 
 - 默认30s持续时间，可以用`?time=60`来控制，结束后浏览器访问会下载一个profile文件，命令行会直接进入交互模式。（下载的文件用`go tool pprof profile`来使用）
+
+## sqlite3
+
+使用sqlite的话，交叉编译要把CGO_ENABLED=1，因为依赖了C代码，但是又需要额外的gcc参数，`CC=arm-linux-gnueabi-gcc`，要额外安装，比较麻烦，可以研究使用docker编译。
+
+## docker build
+
+用了树莓派，为了更方便的build对应的平台，考虑用docker来build。
+
+步骤：
+
+- 准备一个镜像，安装了go和gcc-arm-linux-gnueabi等工具（记得apt clean）
+  - [dockerfile参考](https://github.com/cloudfoundry-incubator/diego-dockerfiles/tree/master/golang-ci/Dockerfile)
+  - go build -t golang:1.12 . ，构建新的镜像
+- 将makefile调用的docker换到本地构建好的docker上，构建好的文件会出现在本地目录
+
+```dockerfile
+FROM golang:1.12
+
+ADD . /go/src/github.com/26huitailang/golang-web
+WORKDIR /go/src/github.com/26huitailang/golang-web
+
+# arm build
+RUN apt update
+RUN apt install gcc-arm-linux-gnueabi -y
+RUN apt clean
+```

@@ -39,8 +39,12 @@ build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v
 build-arm:
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm $(GOBUILD) -o $(BINARY_ARM) -v
-docker-build:
-	docker run --rm -it -v "$(GOPATH)":/go -w /go/src/github.com/26huitailang/golang-web golang:latest go build -o "$(BINARY_LINUX)" -v
+
+# docker
+docker-build: # 准备docker用于go build的环境
+	docker build -t golang:1.12 .
+docker-build-arm:
+	docker run --rm -it -v "$(GOPATH)":/go -w /go/src/github.com/26huitailang/golang-web -e CGO_ENABLED=1 -e GOOS=linux -e GOARCH=arm -e CC=arm-linux-gnueabi-gcc golang:1.12 go build -o $(BINARY_ARM) -v
 
 # documentation
 doc:
