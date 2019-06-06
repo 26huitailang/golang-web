@@ -11,6 +11,7 @@ BINARY_NAME=main
 BINARY_LINUX=$(BINARY_NAME)_linux
 BINARY_ARM=$(BINARY_LINUX)_arm
 PROFILE=profile
+COVERPROFILE=coverprofile
 
 all: test build
 build:
@@ -22,11 +23,15 @@ clean:
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_LINUX)
 	rm -f $(BINARY_ARM)
+	rm -f $(COVERPROFILE)
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v
 	./$(BINARY_NAME)
 benchmark:
 	$(GOBENCHMARK)
+cover:
+	$(GOTEST) -coverprofile $(COVERPROFILE) ./...
+	$(GOTOOL) cover -html $(COVERPROFILE)
 
 # dependence
 deps:
