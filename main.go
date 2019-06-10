@@ -283,7 +283,7 @@ func main() {
 	// e.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 	e.Static("/image/*filepath", config.BasePath)
 
-	addr := fmt.Sprintf("%s:%s", config.IP, config.Port)
+	addr := fmt.Sprintf("%s%s", config.IP, config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
 	// server := http.Server{
 	// 	Addr:    addr,
