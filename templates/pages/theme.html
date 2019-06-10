@@ -1,8 +1,14 @@
 {{define "content"}}
-    <h2>{{.Theme.Name}}</h2>
-    <ul class="list-group">
-        {{range .Suites}}
-            <li class="list-group-item"><a href="{{$.Theme.ID}}/suites/{{.ID}}">{{.Name}}</a></li>
-        {{end}}
-    </ul>
+<h2>{{.Theme.Name}}</h2>
+<a href="{{.Theme.ID}}?is_read=false" class="badge badge-primary">
+    未读 <span class="badge badge-light">9</span>
+</a>
+<a href="{{.Theme.ID}}?is_read=true" class="badge badge-secondary">
+    已读 <span class="badge badge-light">9</span>
+</a>
+<ul class="list-group">
+    {{range .Suites}}
+    <li class="list-group-item"><a href="{{$.Theme.ID}}/suites/{{.ID}}">{{.Name}}</a></li>
+    {{end}}
+</ul>
 {{end}}
