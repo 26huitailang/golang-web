@@ -119,10 +119,18 @@ func themes(c echo.Context) (err error) {
 	return
 }
 
+type themeQuery struct {
+	IsRead bool `query:"is_read"`
+}
+
 func theme(c echo.Context) (err error) {
 	themeID, err := strconv.Atoi(c.Param("id"))
-	isRead := c.QueryParam("is_read")
-	log.Debugf("is_read: %v %T", isRead, isRead)
+	queryParams := c.QueryParams()
+	query := new(themeQuery)
+	if err = c.Bind(query); err != nil {
+		return
+	}
+	log.Debugf("is_read: %v %T", query.IsRead, query.IsRead)
 	if err != nil {
 		return c.Redirect(404, "/")
 	}
@@ -130,16 +138,13 @@ func theme(c echo.Context) (err error) {
 	var theme Theme
 	var suites []Suite
 	DB.Where("id = ?", themeID).First(&theme)
-	DB.Model(&theme).Where("is_read = ?", true).Related(&suites).Order("name")
-	// DB.Model(&suites).
 
-	switch isRead {
-	case "true":
-		DB.Model(&suites).Where("is_read = ?", true)
-	case "false":
-	default:
-
+	if _, ok := queryParams["is_read"]; ok {
+		DB.Model(&theme).Where("is_read = ?", query.IsRead).Related(&suites).Order("name")
+	} else {
+		DB.Model(&theme).Related(&suites).Order("name")
 	}
+
 	log.Debugf("theme api suites[%s]: %v", theme.Name, suites)
 	data := struct {
 		Theme  Theme
@@ -226,7 +231,7 @@ func taskTheme(c echo.Context) (err error) {
 }
 
 func initDB(c echo.Context) (err error) {
-	// todo websocket
+	// todo websocket，异步？
 	log.Println("droppig table ...")
 	DB.DropTableIfExists(Theme{}, Suite{}, Image{})
 	log.Println("migrating table ...")
@@ -235,6 +240,9 @@ func initDB(c echo.Context) (err error) {
 	InitTheme(config)
 	return c.String(200, "finish init db!\n")
 }
+
+// todo: /suite/:id/like 翻转操作，时间限制，3s一次
+
 func customHTTPErrorHandler(err error, c echo.Context) {
 	code := http.StatusInternalServerError
 	if he, ok := err.(*echo.HTTPError); ok {

@@ -1,14 +1,25 @@
 {{define "content"}}
-<h2>{{.Theme.Name}}</h2>
-<a href="{{.Theme.ID}}?is_read=false" class="badge badge-primary">
-    未读 <span class="badge badge-light">9</span>
-</a>
-<a href="{{.Theme.ID}}?is_read=true" class="badge badge-secondary">
-    已读 <span class="badge badge-light">9</span>
-</a>
-<ul class="list-group">
-    {{range .Suites}}
-    <li class="list-group-item"><a href="{{$.Theme.ID}}/suites/{{.ID}}">{{.Name}}</a></li>
-    {{end}}
-</ul>
+<div class="row">
+    <div class="col-xs-12 col-md-4">
+        <p class="h2">{{.Theme.Name}}</p>
+    </div>
+    <div class="col-xs-12 col-md-4">
+        <a href="{{.Theme.ID}}?is_read=false" class="badge badge-primary">
+            未读 <span class="badge badge-light">9</span>
+        </a>
+        <a href="{{.Theme.ID}}?is_read=true" class="badge badge-secondary">
+            已读 <span class="badge badge-light">9</span>
+        </a>
+    </div>
+</div>
+<div class="row">
+    <ul class="list-group">
+        {{range .Suites}}
+        <li class="list-group-item"><a href="{{$.Theme.ID}}/suites/{{.ID}}">{{.Name}}</a></li>
+        {{end}}
+    </ul>
+</div>
+<div class="row">
+    <!-- todo: 用文字来区别，if else -->
+</div>
 {{end}}
