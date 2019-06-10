@@ -16,6 +16,7 @@ import (
 
 	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/jinzhu/gorm"
@@ -93,7 +94,6 @@ func initCustomConfig() {
 	// var customConfig Configuration
 	var customMap map[string]interface{}
 	json.Unmarshal(data, &customMap)
-	// log.Printf("custom config: %v", customMap)
 
 	// 遍历config结构体，判断是否有覆盖内容
 	t := reflect.TypeOf(config).Elem()
@@ -113,11 +113,7 @@ func themes(c echo.Context) (err error) {
 	var themes []Theme
 	DB.Order("name").Find(&themes)
 
-	// var t *template.Template
-	// t, _ = template.ParseFiles("templates/layout.html", "templates/themes.html")
-	// t.ExecuteTemplate(w, "layout", themes)
 	c.Render(http.StatusOK, "layout:themes", themes)
-	//fmt.Fprintf(w, "%s\n", keys)
 	return
 }
 
@@ -127,8 +123,6 @@ func theme(c echo.Context) (err error) {
 		return c.Redirect(404, "/")
 	}
 
-	// var t *template.Template
-	// t, _ = template.ParseFiles("templates/layout.html", "templates/theme.html")
 	var theme Theme
 	var suites []Suite
 	DB.Where("id = ?", themeID).First(&theme)
@@ -141,13 +135,10 @@ func theme(c echo.Context) (err error) {
 		theme,
 		suites,
 	}
-	// t.ExecuteTemplate(w, "layout", data)
 	return c.Render(http.StatusOK, "layout:theme", data)
 }
 
 func suiteHandle(c echo.Context) (err error) {
-	// themeName := p.ByName("name")
-	// suiteName := p.ByName("suite")
 	var sutieID int
 	sutieID, err = strconv.Atoi(c.Param("suite_id"))
 	if err != nil {
@@ -156,11 +147,6 @@ func suiteHandle(c echo.Context) (err error) {
 	log.Debugf("suiteID: %d", sutieID)
 	var suite Suite
 	var images []Image
-	// for _, n := range Theme[themeName] {
-	// 	if n.Name == suiteName {
-	// 		data = n
-	// 	}
-	// }
 	DB.Where("id = ?", sutieID).Find(&suite)
 	log.Debugf("suite: %v", suite)
 	DB.Model(&suite).Related(&images).Order("name")
@@ -172,9 +158,6 @@ func suiteHandle(c echo.Context) (err error) {
 		suite.Name,
 		images,
 	}
-	// var t *template.Template
-	// t, _ = template.ParseFiles("templates/layout.html", "templates/suite.html")
-	// t.ExecuteTemplate(w, "layout", data)
 	return c.Render(200, "layout:suite", data)
 }
 
@@ -208,7 +191,6 @@ func taskSuite(c echo.Context) (err error) {
 		s := suite.NewSuite("https://www.meituri.com/a/26718/")
 		suite.DonwloadSuite(s, 5, "/Users/26huitailang/Downloads/mzitu_go", s.Title)
 	}()
-	// fmt.Fprint(w, "task suite sent ...")
 	return c.String(http.StatusAccepted, "task suite sent ...")
 }
 
@@ -227,7 +209,6 @@ func taskTheme(c echo.Context) (err error) {
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
 	}()
-	// fmt.Fprint(w, "task theme sent ...")
 	return c.String(http.StatusAccepted, "task theme sent ...")
 }
 
@@ -239,7 +220,6 @@ func initDB(c echo.Context) (err error) {
 	DB.AutoMigrate(Theme{}, Suite{}, Image{})
 	log.Println("start init db ...")
 	InitTheme(config)
-	// fmt.Fprint(w, "finish init db!\n")
 	return c.String(200, "finish init db!\n")
 }
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -247,25 +227,24 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	if he, ok := err.(*echo.HTTPError); ok {
 		code = he.Code
 	}
+	log.Errorf("status code: %d", code)
 	errorPage := fmt.Sprintf("templates/error/%d.html", code)
 	if err := c.File(errorPage); err != nil {
 		c.Logger().Error(err)
 	}
-	// c.Logger().Error(err)
 }
 
 func main() {
-	// mux := httprouter.New()
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.CSRF())
+	// e.Use(middleware.JWT([]byte("secret")))
 
 	var EchoTemplate = &Template{}
-	// e.Renderer = tmpl
 	e.Renderer = EchoTemplate
 
-	// e.Use(middleware.Logger())
 	// profiling
 	// mux = httpprof.WrapRouter(mux)
-	// mux.NotFound = http.HandlerFunc(views.PageNotFound404)
 	e.HTTPErrorHandler = customHTTPErrorHandler
 	e.GET("/", index)
 	e.GET("/hello/:name", func(c echo.Context) error {
@@ -282,8 +261,6 @@ func main() {
 	e.GET("/themes/:theme_id/suites/:suite_id", suiteHandle)
 
 	e.POST("/devops/initdb", initDB)
-	//mux.NotFound = http.FileServer(http.Dir("/"))
-	// e.ServeFiles("/image/*filepath", http.Dir(config.BasePath))
 	e.Static("/image/*filepath", config.BasePath)
 
 	addr := fmt.Sprintf("%s%s", config.IP, config.Port)
