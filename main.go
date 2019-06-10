@@ -27,9 +27,10 @@ var config *Configuration
 var DB *gorm.DB
 
 type Configuration struct {
-	BasePath string `json:"base_path"`
-	IP       string `json:"ip"`
-	Port     string `json:"port"`
+	BasePath    string `json:"base_path"`
+	IP          string `json:"ip"`
+	Port        string `json:"port"`
+	DeployLevel int    `json:"deploy_level"`
 }
 
 // 初始化文件结构
@@ -50,6 +51,7 @@ func init() {
 	if err != nil {
 		log.Panicf("DB connect error: %s", err)
 	}
+	DB.LogMode(true)
 
 	// 迁移
 	DB.SingularTable(true) // 单数表名
@@ -119,6 +121,8 @@ func themes(c echo.Context) (err error) {
 
 func theme(c echo.Context) (err error) {
 	themeID, err := strconv.Atoi(c.Param("id"))
+	isRead := c.QueryParam("is_read")
+	log.Debugf("is_read: %v %T", isRead, isRead)
 	if err != nil {
 		return c.Redirect(404, "/")
 	}
@@ -126,7 +130,16 @@ func theme(c echo.Context) (err error) {
 	var theme Theme
 	var suites []Suite
 	DB.Where("id = ?", themeID).First(&theme)
-	DB.Model(&theme).Related(&suites).Order("name")
+	DB.Model(&theme).Where("is_read = ?", true).Related(&suites).Order("name")
+	// DB.Model(&suites).
+
+	switch isRead {
+	case "true":
+		DB.Model(&suites).Where("is_read = ?", true)
+	case "false":
+	default:
+
+	}
 	log.Debugf("theme api suites[%s]: %v", theme.Name, suites)
 	data := struct {
 		Theme  Theme
@@ -236,6 +249,14 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 
 func main() {
 	e := echo.New()
+	if config.DeployLevel >= Development {
+		e.Use(middleware.Logger())
+	} else {
+		logfile, _ := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+			Output: logfile,
+		}))
+	}
 	e.Use(middleware.Logger())
 	e.Use(middleware.CSRF())
 	// e.Use(middleware.JWT([]byte("secret")))
