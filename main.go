@@ -42,11 +42,6 @@ func init() {
 	ReloadTemplates()
 }
 
-func index(c echo.Context) (err error) {
-	http.Redirect(c.Response(), c.Request(), "/themes", 301)
-	return nil
-}
-
 func startChild1() {
 	cmd := exec.Command("/bin/sh", "-c", "sleep 1000")
 	time.AfterFunc(10*time.Second, func() {
@@ -125,7 +120,6 @@ func main() {
 			return h(cc)
 		}
 	})
-	println("DDDDD:", Config)
 
 	if Config.DeployLevel >= Development {
 		e.Use(middleware.Logger())
@@ -145,7 +139,7 @@ func main() {
 	// profiling
 	// mux = httpprof.WrapRouter(mux)
 	e.HTTPErrorHandler = customHTTPErrorHandler
-	e.GET("/", index)
+	e.GET("/", IndexHandle)
 	e.GET("/hello/:name", func(c echo.Context) error {
 		name := c.Param("name")
 		resp := fmt.Sprintf("Hello, %s!", name)
@@ -157,7 +151,10 @@ func main() {
 
 	e.GET("/themes", ThemesHandle)
 	e.GET("/themes/:id", ThemeHandle)
-	e.GET("/themes/:theme_id/suites/:suite_id", SuiteHandle)
+	e.GET("/suites", SuitesHandle)
+	e.GET("/suites/:suite_id", SuiteHandle)
+	e.GET("/suites/:id/doread", SuiteReadHandle)
+	e.GET("/suites/:id/dolike", SuiteLikeHandle)
 
 	e.POST("/devops/initdb", InitDBHandle)
 	e.Static("/image/*filepath", Config.BasePath)

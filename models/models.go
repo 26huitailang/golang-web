@@ -14,6 +14,7 @@ type Suite struct {
 	ThemeID uint
 	Images  []Image
 	IsRead  bool `gorm:"DEFAULT:false"`
+	IsLike  bool `gorm:"DEFAULT:false"`
 }
 
 type Image struct {

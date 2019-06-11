@@ -1,15 +1,34 @@
 {{define "content"}}
 <div class="row">
-    <h5 style="margin: 0 auto">{{.Name}}</h5>
-</div>
-<div class="row">
     <div class="col-md-2"></div>
     <div class="col-xs-12 col-md-8">
-        <ul class="list-group">
-            {{range .Images}}
-            <li class="list-group-item"><img src="/image/{{.Path}}" style="width: 100%" alt="?" /></li>
-            {{end}}
-        </ul>
+        <div class="row">
+            <h5 style="margin: 0 auto">{{.Suite.Name}}</h5>
+        </div>
+        <div class="row">
+            <ul class="list-group">
+                {{range .Images}}
+                <li class="list-group-item"><img src="/image/{{.Path}}" style="width: 100%" alt="?" /></li>
+                {{end}}
+            </ul>
+        </div>
+        <div class="row">
+            <!-- todo: 用文字来区别，if else -->
+            <a href="/suites/{{.Suite.ID}}/doread" type="button" class="btn btn-outline-primary btn-sm" name="action-read">
+                {{if .Suite.IsRead}}
+                已读
+                {{else}}
+                DoRead
+                {{end}}
+            </a>
+            <a href="/suites/{{.Suite.ID}}/dolike" type="button" class="btn btn-outline-danger btn-sm" name="action-like">
+                {{if .Suite.IsLike}}
+                😍
+                {{else}}
+                DoLike
+                {{end}}
+            </a>
+        </div>
     </div>
     <div class="col-md-2"></div>
 </div>
