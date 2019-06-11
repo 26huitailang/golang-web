@@ -1,0 +1,44 @@
+{{define "content"}}
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-xs-12 col-md-8">
+        <div class="row">
+            <h5 style="margin: 0 auto">Devops</h5>
+        </div>
+        <div class="row">
+            <form action="/devops/initdb" method="POST">
+                <div class="form-group">
+                    <label for="csrf">重置数据库</label>
+                    <!-- <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password"> -->
+                    <input type="hidden" name="csrf" value="{{.}}">
+                </div>
+                <!-- <input type="submit"> -->
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <div class="row">
+            <form action="/task/theme" method="POST">
+                <div class="form-group">
+                    <label for="url">Theme</label>
+                    <input type="text" class="form-control" id="url" name="url"
+                        placeholder="https://www.meituri.com/x/85/">
+                    <input type="hidden" name="csrf" value="{{.}}">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <div class="row">
+            <form action="/task/suite" method="POST">
+                <div class="form-group">
+                    <label for="url">Suite</label>
+                    <input type="text" class="form-control" id="url" name="url"
+                        placeholder="https://www.meituri.com/a/27606/">
+                    <input type="hidden" name="csrf" value="{{.}}">
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+{{end}}

@@ -1,11 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"os/exec"
-	"syscall"
-	"time"
 
 	"github.com/26huitailang/golang-web/database"
 
@@ -13,7 +9,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	log "github.com/sirupsen/logrus"
@@ -40,52 +35,6 @@ func init() {
 
 	// 模板预加载
 	ReloadTemplates()
-}
-
-func startChild1() {
-	cmd := exec.Command("/bin/sh", "-c", "sleep 1000")
-	time.AfterFunc(10*time.Second, func() {
-		fmt.Println("PID1=", cmd.Process.Pid)
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGQUIT)
-		fmt.Println("killed")
-	})
-	fmt.Println("begin run")
-	cmd.Run()
-}
-
-func startChild2() {
-	for index := 0; index < 10; index++ {
-		time.Sleep(1 * time.Second)
-		fmt.Println(index)
-	}
-}
-
-func taskSuite(c echo.Context) (err error) {
-	// go startChild1()
-	// go startChild2()
-	go func() {
-		s := suite.NewSuite("https://www.meituri.com/a/26718/")
-		suite.DonwloadSuite(s, 5, "/Users/26huitailang/Downloads/mzitu_go", s.Title)
-	}()
-	return c.String(http.StatusAccepted, "task suite sent ...")
-}
-
-func taskTheme(c echo.Context) (err error) {
-	var form struct {
-		URL string `json:"url"`
-	}
-	err = json.NewDecoder(c.Request().Body).Decode(&form)
-	if err != nil {
-		return c.String(500, err.Error())
-	}
-	log.Println(form)
-
-	go func() {
-		t := suite.NewTheme(form.URL, Config.BasePath)
-		t.DownloadOneTheme()
-		fmt.Printf("%v", t)
-	}()
-	return c.String(http.StatusAccepted, "task theme sent ...")
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -130,7 +79,10 @@ func main() {
 		}))
 	}
 	e.Use(middleware.Logger())
-	e.Use(middleware.CSRF())
+	// e.Use(middleware.CSRF())
+	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "form:csrf",
+	}))
 	// e.Use(middleware.JWT([]byte("secret")))
 
 	var EchoTemplate = &Template{}
@@ -156,7 +108,9 @@ func main() {
 	e.GET("/suites/:id/doread", SuiteReadHandle)
 	e.GET("/suites/:id/dolike", SuiteLikeHandle)
 
-	e.POST("/devops/initdb", InitDBHandle)
+	devopsGroup := e.Group("/devops")
+	devopsGroup.POST("/initdb", InitDBHandle)
+	devopsGroup.GET("", DevopsHandle)
 	e.Static("/image/*filepath", Config.BasePath)
 
 	addr := fmt.Sprintf("%s%s", Config.IP, Config.Port)

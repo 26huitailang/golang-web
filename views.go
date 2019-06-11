@@ -3,8 +3,14 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os/exec"
 	"strconv"
+	"syscall"
+	"time"
 
+	"github.com/labstack/echo/middleware"
+
+	"github.com/26huitailang/golang-web/downloadsuite/suite"
 	"github.com/26huitailang/golang-web/models"
 	"github.com/labstack/echo"
 
@@ -146,7 +152,75 @@ func InitDBHandle(c echo.Context) (err error) {
 	log.Println("migrating table ...")
 	DB.AutoMigrate(models.Theme{}, models.Suite{}, models.Image{})
 	log.Println("start init db ...")
-	// var config = config.Config
-	// config.InitTheme()
-	return c.String(200, "finish init db!\n")
+	go Config.InitTheme()
+	return c.Redirect(302, "/")
+}
+
+func DevopsHandle(c echo.Context) (err error) {
+	csrf := c.Get(middleware.DefaultCSRFConfig.ContextKey).(string)
+	return c.Render(200, "layout:devops", csrf)
+}
+
+func startChild1() {
+	cmd := exec.Command("/bin/sh", "-c", "sleep 1000")
+	time.AfterFunc(10*time.Second, func() {
+		fmt.Println("PID1=", cmd.Process.Pid)
+		syscall.Kill(-cmd.Process.Pid, syscall.SIGQUIT)
+		fmt.Println("killed")
+	})
+	fmt.Println("begin run")
+	cmd.Run()
+}
+
+func startChild2() {
+	for index := 0; index < 10; index++ {
+		time.Sleep(1 * time.Second)
+		fmt.Println(index)
+	}
+}
+
+func taskSuite(c echo.Context) (err error) {
+	// go startChild1()
+	// go startChild2()
+	url := c.FormValue("url")
+	log.Infoln("url:", url)
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Errorf("%v", err)
+			}
+		}()
+		s := suite.NewSuite(url)
+		// todo: 这里没有创建theme文件夹，关键是suite获取的机构名与该链接下的实际名称不一致
+		suite.DonwloadSuite(s, 5, Config.BasePath, s.Title)
+		Config.InitTheme()
+	}()
+	return c.String(http.StatusAccepted, "task suite sent ...")
+}
+
+func taskTheme(c echo.Context) (err error) {
+
+	// var form struct {
+	// 	URL string `json:"url"`
+	// }
+	url := c.FormValue("url")
+	// err = json.NewDecoder(c.Request().Body).Decode(&form)
+	// log.Errorf("%v", err)
+	// if err != nil {
+	// 	return c.String(500, err.Error())
+	// }
+	log.Println("url:", url)
+
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Errorf("%v", err)
+			}
+		}()
+		t := suite.NewTheme(url, Config.BasePath)
+		t.DownloadOneTheme()
+		fmt.Printf("%v", t)
+		Config.InitTheme()
+	}()
+	return c.String(http.StatusAccepted, "task theme sent ...")
 }
