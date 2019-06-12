@@ -192,7 +192,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 			}
 		}()
 		s := suite.NewSuite(url)
-		suite.DonwloadSuite(s, 5, Config.BasePath, s.Title)
+		suite.DonwloadSuite(s, 5, Config.BasePath, s.Title, false)
 		// 重新加载进去
 		Config.InitTheme()
 	}()

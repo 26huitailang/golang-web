@@ -13,21 +13,24 @@
             </ul>
         </div>
         <div class="row">
-            <!-- todo: 用文字来区别，if else -->
-            <a href="/suites/{{.Suite.ID}}/doread" type="button" class="btn btn-outline-primary btn-sm" name="action-read">
-                {{if .Suite.IsRead}}
-                已读
-                {{else}}
-                DoRead
-                {{end}}
-            </a>
-            <a href="/suites/{{.Suite.ID}}/dolike" type="button" class="btn btn-outline-danger btn-sm" name="action-like">
-                {{if .Suite.IsLike}}
-                😍
-                {{else}}
-                DoLike
-                {{end}}
-            </a>
+            <nav class="navbar fixed-bottom navbar-light bg-light" style="display: inline-block">
+                <a href="/suites/{{.Suite.ID}}/doread" type="button" class="btn btn-outline-primary btn-sm"
+                    name="action-read">
+                    {{if .Suite.IsRead}}
+                    已读
+                    {{else}}
+                    DoRead
+                    {{end}}
+                </a>
+                <a href="/suites/{{.Suite.ID}}/dolike" type="button" class="btn btn-outline-danger btn-sm"
+                    name="action-like">
+                    {{if .Suite.IsLike}}
+                    😍
+                    {{else}}
+                    DoLike
+                    {{end}}
+                </a>
+            </nav>
         </div>
     </div>
     <div class="col-md-2"></div>
