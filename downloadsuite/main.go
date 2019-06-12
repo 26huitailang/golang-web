@@ -19,7 +19,7 @@ func init() {
 	// https://www.meituri.com/a/26718/
 	flag.StringVar(&firstPage, "url", "", "Suite首页")
 	flag.StringVar(&folderSave, "folder", "", "保存的suite路径")
-	flag.BoolVar(&isTheme, "t", true, "Theme标记")
+	flag.BoolVar(&isTheme, "t", false, "Theme标记")
 }
 
 func main() {

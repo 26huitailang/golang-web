@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Theme 对应meituri机构
 type Theme struct {
 	FirstURL         string
 	Name             string
@@ -45,6 +46,7 @@ func (t *Theme) parseMaxPage() {
 	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s)<a href="(.+?) class="next">`)
 	tmp := re.FindString(t.FirstPageContent)
 	intRe := regexp.MustCompile(`[0-9]+`)
+	// bug(peter): 不能分析单页，下面没有翻页组件
 	pageStr := intRe.FindString(tmp)
 	pageMax, err := strconv.Atoi(pageStr)
 	checkError(err)

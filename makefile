@@ -12,6 +12,7 @@ BINARY_LINUX=$(BINARY_NAME)_linux
 BINARY_ARM=$(BINARY_LINUX)_arm
 PROFILE=profile
 COVERPROFILE=coverprofile
+LOGFILE=main.log
 
 all: test build
 build:
@@ -24,6 +25,7 @@ clean:
 	rm -f $(BINARY_LINUX)
 	rm -f $(BINARY_ARM)
 	rm -f $(COVERPROFILE)
+	rm -f $(LOGFILE)
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v
 	./$(BINARY_NAME)

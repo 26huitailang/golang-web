@@ -127,7 +127,7 @@ func SuiteReadHandle(c echo.Context) (err error) {
 	return c.Redirect(302, url)
 }
 
-// todo: /suite/:id/like 翻转操作，时间限制，3s一次
+// todo: 时间限制，3s一次
 func SuiteLikeHandle(c echo.Context) (err error) {
 	var suiteID int
 	suiteID, err = strconv.Atoi(c.Param("id"))
@@ -152,6 +152,7 @@ func InitDBHandle(c echo.Context) (err error) {
 	log.Println("migrating table ...")
 	DB.AutoMigrate(models.Theme{}, models.Suite{}, models.Image{})
 	log.Println("start init db ...")
+	// todo: 这里因为用了session，所以在提交前也是看不到任何数据的
 	go Config.InitTheme()
 	return c.Redirect(302, "/")
 }
@@ -179,7 +180,7 @@ func startChild2() {
 	}
 }
 
-func taskSuite(c echo.Context) (err error) {
+func TaskSuiteHandle(c echo.Context) (err error) {
 	// go startChild1()
 	// go startChild2()
 	url := c.FormValue("url")
@@ -191,14 +192,14 @@ func taskSuite(c echo.Context) (err error) {
 			}
 		}()
 		s := suite.NewSuite(url)
-		// todo: 这里没有创建theme文件夹，关键是suite获取的机构名与该链接下的实际名称不一致
 		suite.DonwloadSuite(s, 5, Config.BasePath, s.Title)
+		// 重新加载进去
 		Config.InitTheme()
 	}()
 	return c.String(http.StatusAccepted, "task suite sent ...")
 }
 
-func taskTheme(c echo.Context) (err error) {
+func TaskThemeHandle(c echo.Context) (err error) {
 
 	// var form struct {
 	// 	URL string `json:"url"`
