@@ -88,6 +88,7 @@ type themeInfo struct {
 // InitTheme 根据配置的路径返回文件结构
 // 现在为两层，theme/suites
 // InitTheme to init database from local files
+// todo: 跳过已经存在的suite
 func (conf *Configuration) InitTheme() {
 	dir, _ := ioutil.ReadDir(conf.BasePath)
 	finish := make(chan themeInfo)
@@ -136,7 +137,11 @@ func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out ch
 			return nil
 		}
 		suite := &models.Suite{Name: info.Name(), ThemeID: theme.ID}
-		tx.Create(suite)
+		// 跳过已存在的suite
+		if err := tx.Create(suite).Error; err != nil {
+			log.Infoln("db instert suite skip existed:", suite.Name)
+			return nil
+		}
 		suitePath := filepath.Join(themePath, info.Name())
 		n, _ := initImageBySuite(tx, suite, suitePath)
 		log.Printf("Suite: %s | Image: %d insert", suite.Name, n)

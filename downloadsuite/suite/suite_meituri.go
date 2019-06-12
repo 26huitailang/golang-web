@@ -14,6 +14,7 @@ type MeituriSuite struct {
 	firstPage       string
 	Title           string
 	firtHTMLContent string
+	OrgURL          string
 }
 
 // NewSuite 初始化一个MeituriSuite结构
@@ -23,11 +24,12 @@ func NewSuite(firstPage string) *MeituriSuite {
 	}
 	suite.firtHTMLContent = getPageContent(firstPage)
 	suite.parseTitle()
+	suite.getOrgURL()
 	return suite
 }
 
 // GetPageURLs 接口方法，生成每页的URL
-func (suite MeituriSuite) GetPageURLs(chPage chan string) {
+func (suite *MeituriSuite) GetPageURLs(chPage chan string) {
 	pageMax := suite.findPageMax()
 	for i := 1; i <= pageMax; i++ {
 		switch i {
@@ -42,7 +44,7 @@ func (suite MeituriSuite) GetPageURLs(chPage chan string) {
 }
 
 // GetImgURLs 实现接口方法，获取每页的ImgURL放入channel
-func (suite MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan string) <-chan string {
+func (suite *MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan string) <-chan string {
 	out := make(chan string)
 	go func() {
 		defer close(out)
@@ -69,7 +71,7 @@ func (suite MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan st
 }
 
 // Download 实现接口方法，下载chImg channel中的URL
-func (suite MeituriSuite) Download(chImg <-chan string, chFailedImg chan string, folderPath string) <-chan string {
+func (suite *MeituriSuite) Download(chImg <-chan string, chFailedImg chan string, folderPath string) <-chan string {
 	finish := make(chan string)
 	go func() {
 		downloader(chImg, finish, chFailedImg, folderPath)
@@ -78,7 +80,7 @@ func (suite MeituriSuite) Download(chImg <-chan string, chFailedImg chan string,
 }
 
 // 获取最大页码
-func (suite MeituriSuite) findPageMax() (pageMax int) {
+func (suite *MeituriSuite) findPageMax() (pageMax int) {
 	pageContentRegexp, _ := regexp.Compile(`html">([0-9]+)</a> <a class="a1`)
 	tmp := pageContentRegexp.FindString(suite.firtHTMLContent)
 	intRe, _ := regexp.Compile(`[0-9]+`)
@@ -89,7 +91,7 @@ func (suite MeituriSuite) findPageMax() (pageMax int) {
 }
 
 // 根绝页码和firstPage构建其余的page的URL
-func (suite MeituriSuite) generatePageURL(page int) string {
+func (suite *MeituriSuite) generatePageURL(page int) string {
 	// https://www.meituri.com/a/26718/2.html
 	pageStr := strconv.Itoa(page)
 	return suite.firstPage + pageStr + ".html"
@@ -145,4 +147,24 @@ func (suite *MeituriSuite) parseTitle() {
 	titleRegexp, _ := regexp.Compile(`<h1>(.+?)</h1>`)
 	title := titleRegexp.FindStringSubmatch(suite.firtHTMLContent)
 	suite.Title = title[1]
+}
+
+func (suite *MeituriSuite) getOrgURL() {
+	url := parseOrgURL(suite.firtHTMLContent)
+	suite.OrgURL = url
+}
+
+func parseOrgURL(content string) (url string) {
+	// println(content)
+	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)<a href="(.*?)" target="_blank">`) // 非贪婪
+	texts := re.FindStringSubmatch(content)
+	println("texts:", texts)
+	url = texts[2]
+	println("parseOrgURL:", url)
+	return
+}
+
+// GetOrgURL 获取对象的该属性
+func (suite *MeituriSuite) GetOrgURL() string {
+	return suite.OrgURL
 }

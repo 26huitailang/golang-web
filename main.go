@@ -98,8 +98,8 @@ func main() {
 		return c.String(http.StatusOK, resp)
 	})
 
-	e.POST("/task/suite", taskSuite)
-	e.POST("/task/theme", taskTheme)
+	e.POST("/task/suite", TaskSuiteHandle)
+	e.POST("/task/theme", TaskThemeHandle)
 
 	e.GET("/themes", ThemesHandle)
 	e.GET("/themes/:id", ThemeHandle)
