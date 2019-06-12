@@ -1,0 +1,4 @@
+config_custom.json
+*.db
+.idea/
+.vscode/
