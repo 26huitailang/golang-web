@@ -114,7 +114,7 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genPages()
 	go t.genSuites()
 	for s := range t.Suites {
-		DonwloadSuite(s, 3, t.Path, s.Title)
+		DonwloadSuite(s, 3, t.Path, s.Title, true)
 	}
 	log.Println("DownloadOneTheme finished!")
 }

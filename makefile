@@ -13,6 +13,8 @@ BINARY_ARM=$(BINARY_LINUX)_arm
 PROFILE=profile
 COVERPROFILE=coverprofile
 LOGFILE=main.log
+REMOTEIP=192.168.8.217
+REMOTEPATH=pi@$(REMOTEIP):/home/pi/go/golang-web/
 
 all: test build
 build:
@@ -61,3 +63,25 @@ doc:
 # go tool
 pprof:
 	$(GOTOOL) pprof $(PROFILE)
+
+scp:
+	scp config.json $(REMOTEPATH)
+	scp supervisor-golang-web.conf $(REMOTEPATH)
+	scp main_linux_arm $(REMOTEPATH)
+	scp -r templates $(REMOTEPATH)
+
+remote-stop:
+	ssh pi@192.168.8.217 -p 22 "\
+	sudo supervisorctl stop golang-web && \
+	exit"
+	echo done!
+
+remote-start:
+	ssh pi@192.168.8.217 -p 22 "\
+	sudo supervisorctl start golang-web && \
+	exit"
+	echo done!
+
+# deploy raspberry
+deploy-raspberry: docker-build-arm remote-stop scp remote-start
+	echo deploy done!
