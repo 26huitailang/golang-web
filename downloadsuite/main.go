@@ -36,7 +36,7 @@ func main() {
 		t.DownloadOneTheme()
 	} else {
 		s := suite.NewSuite(firstPage)
-		suite.DonwloadSuite(s, 5, folderSave, s.Title)
+		suite.DonwloadSuite(s, 5, folderSave, s.Title, isTheme)
 	}
 	fmt.Println("✅")
 }

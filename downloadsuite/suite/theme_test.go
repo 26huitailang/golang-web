@@ -21,3 +21,22 @@ func TestParseSuites(t *testing.T) {
 // 	suite := NewSuite(suiteURL)
 // 	assert.Equal(t, suite.Title, title, "Title should be the same.")
 // }
+
+func TestParseThemePageMax(t *testing.T) {
+	input := []string{
+		`<center><div id="pages" class="text-c">
+		第一页 <a href="javascript:void(0)" class="current">1</a>
+		 <a href="/x/82/index_1.html" >2</a>
+		 <a href="/x/82/index_2.html" >3</a>
+		 <a href="/x/82/index_3.html" >4</a>
+<a href="/x/82/index_1.html" class="next">下一页</a></div></center>`,
+		"",
+	}
+	output := []int{4, 1}
+	for i, content := range input {
+		out := parseThemeMaxPage(content)
+		if out != output[i] {
+			t.Fatalf("Expected %d, Got %d", output[i], out)
+		}
+	}
+}

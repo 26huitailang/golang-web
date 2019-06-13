@@ -39,18 +39,25 @@ func (t *Theme) init(folderToSave string) {
 	if ok := IsFileOrFolderExists(t.Path); !ok {
 		os.Mkdir(t.Path, 0700)
 	}
-	t.parseMaxPage()
+	t.getMaxPage()
 }
 
-func (t *Theme) parseMaxPage() {
+func (t *Theme) getMaxPage() {
+	t.MaxPage = parseThemeMaxPage(t.FirstPageContent)
+}
+
+func parseThemeMaxPage(FirstPageContent string) (pageMax int) {
+	// todo: 这里有个小瑕疵，(\s)
 	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s)<a href="(.+?) class="next">`)
-	tmp := re.FindString(t.FirstPageContent)
+	tmp := re.FindString(FirstPageContent)
 	intRe := regexp.MustCompile(`[0-9]+`)
-	// bug(peter): 不能分析单页，下面没有翻页组件
 	pageStr := intRe.FindString(tmp)
 	pageMax, err := strconv.Atoi(pageStr)
-	checkError(err)
-	t.MaxPage = pageMax
+	// 单页，下面没有翻页组件
+	if err != nil {
+		pageMax = 1
+	}
+	return
 }
 
 func (t *Theme) parseName() {
