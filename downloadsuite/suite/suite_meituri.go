@@ -30,7 +30,9 @@ func NewSuite(firstPage string) *MeituriSuite {
 
 // GetPageURLs 接口方法，生成每页的URL
 func (suite *MeituriSuite) GetPageURLs(chPage chan string) {
-	pageMax := suite.findPageMax()
+	defer close(chPage)
+	pageMax := findSuitePageMax(suite.firtHTMLContent)
+	// 没有分页，返回firstPage即可
 	for i := 1; i <= pageMax; i++ {
 		switch i {
 		case 1: // 第一页特殊
@@ -40,7 +42,6 @@ func (suite *MeituriSuite) GetPageURLs(chPage chan string) {
 			chPage <- pageURL
 		}
 	}
-	defer close(chPage)
 }
 
 // GetImgURLs 实现接口方法，获取每页的ImgURL放入channel
@@ -80,14 +81,17 @@ func (suite *MeituriSuite) Download(chImg <-chan string, chFailedImg chan string
 }
 
 // 获取最大页码
-func (suite *MeituriSuite) findPageMax() (pageMax int) {
+func findSuitePageMax(firstHTMLContent string) (pageMax int) {
 	pageContentRegexp, _ := regexp.Compile(`html">([0-9]+)</a> <a class="a1`)
-	tmp := pageContentRegexp.FindString(suite.firtHTMLContent)
+	tmp := pageContentRegexp.FindString(firstHTMLContent)
 	intRe, _ := regexp.Compile(`[0-9]+`)
 	pageStr := intRe.FindString(tmp)
 	pageMax, err := strconv.Atoi(pageStr)
-	checkError(err)
-	return pageMax
+	// 没有分页组件，表示就一页
+	if err != nil {
+		pageMax = 1
+	}
+	return
 }
 
 // 根绝页码和firstPage构建其余的page的URL
