@@ -13,6 +13,17 @@ func TestParseOrgURL(t *testing.T) {
 	if ret != target {
 		t.Fatalf("Expected: %s, Got: %s", target, ret)
 	}
+
+	// 多个标签，获取第一个
+	input := `<p>拍摄机构：
+		<a href="https://www.meituri.com/x/12/" target="_blank">异思趣向</a>
+					<a href="https://www.meituri.com/x/14/" target="_blank">丝享家</a>
+	</p>`
+	output := "https://www.meituri.com/x/12/"
+	ret2 := parseOrgURL(input)
+	if ret2 != output {
+		t.Fatalf("Expected: %s, Got: %s", target, ret)
+	}
 }
 
 func TestFindSuitePageMax(t *testing.T) {
