@@ -29,7 +29,7 @@ func TestParseThemePageMax(t *testing.T) {
 		 <a href="/x/82/index_1.html" >2</a>
 		 <a href="/x/82/index_2.html" >3</a>
 		 <a href="/x/82/index_3.html" >4</a>
-<a href="/x/82/index_1.html" class="next">下一页</a></div></center>`,
+		<a href="/x/82/index_1.html" class="next">下一页</a></div></center>`,
 		"",
 	}
 	output := []int{4, 1}

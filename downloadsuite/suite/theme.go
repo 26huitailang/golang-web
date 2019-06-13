@@ -47,8 +47,7 @@ func (t *Theme) getMaxPage() {
 }
 
 func parseThemeMaxPage(FirstPageContent string) (pageMax int) {
-	// todo: 这里有个小瑕疵，(\s)
-	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s)<a href="(.+?) class="next">`)
+	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s*)<a href="(.+?) class="next">`)
 	tmp := re.FindString(FirstPageContent)
 	intRe := regexp.MustCompile(`[0-9]+`)
 	pageStr := intRe.FindString(tmp)
