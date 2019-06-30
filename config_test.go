@@ -7,7 +7,8 @@ import (
 )
 
 func BenchmarkInitTheme(b *testing.B) {
-	initConfiguration()
+	var conf *Configuration
+	conf.initConfiguration()
 	f, err := os.Create("cpu.prof")
 	if err != nil {
 		b.Fatal(err)
@@ -15,6 +16,6 @@ func BenchmarkInitTheme(b *testing.B) {
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 	for i := 0; i < b.N; i++ {
-		InitTheme(config)
+		conf.InitTheme()
 	}
 }

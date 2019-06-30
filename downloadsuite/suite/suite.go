@@ -16,11 +16,12 @@ type ISuiteOperator interface {
 	GetPageURLs(chan string)
 	GetImgURLs(chPage <-chan string, chFailedImg <-chan string) <-chan string
 	Download(chImg <-chan string, chFailedImg chan string, folderPath string) <-chan string
+	GetOrgURL() string
 }
 
 // DonwloadSuite to download one suite
 // 解析所有page后fan-out，获取img链接，merge结果，再次fan-out给downloader
-func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, title string) {
+func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, title string, isTheme bool) {
 	chPage := make(chan string)
 	chFailedImg := make(chan string) // 下载失败img放回
 	go iSuite.GetPageURLs(chPage)
@@ -34,7 +35,17 @@ func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, ti
 	chImg := merge(chImgs...)
 
 	// 文件夹检查
-	suiteFolderPath := path.Join(folderPath, title)
+	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
+	// todo: 如果有两个呢？是否只取第一个
+	var suiteFolderPath string
+	if !isTheme {
+		themeURL := iSuite.GetOrgURL()
+		theme := NewTheme(themeURL, folderPath)
+		suiteFolderPath = path.Join(folderPath, theme.Name, title)
+	} else {
+		suiteFolderPath = path.Join(folderPath, title)
+	}
+
 	isFolderExist := IsFileOrFolderExists(suiteFolderPath)
 	if !isFolderExist {
 		fmt.Println("创建文件夹: ", suiteFolderPath)

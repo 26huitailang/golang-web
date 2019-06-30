@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Theme 对应meituri机构
 type Theme struct {
 	FirstURL         string
 	Name             string
@@ -38,17 +39,24 @@ func (t *Theme) init(folderToSave string) {
 	if ok := IsFileOrFolderExists(t.Path); !ok {
 		os.Mkdir(t.Path, 0700)
 	}
-	t.parseMaxPage()
+	t.getMaxPage()
 }
 
-func (t *Theme) parseMaxPage() {
-	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s)<a href="(.+?) class="next">`)
-	tmp := re.FindString(t.FirstPageContent)
+func (t *Theme) getMaxPage() {
+	t.MaxPage = parseThemeMaxPage(t.FirstPageContent)
+}
+
+func parseThemeMaxPage(FirstPageContent string) (pageMax int) {
+	re := regexp.MustCompile(`html" >([0-9]+)</a>(\s*)<a href="(.+?) class="next">`)
+	tmp := re.FindString(FirstPageContent)
 	intRe := regexp.MustCompile(`[0-9]+`)
 	pageStr := intRe.FindString(tmp)
 	pageMax, err := strconv.Atoi(pageStr)
-	checkError(err)
-	t.MaxPage = pageMax
+	// 单页，下面没有翻页组件
+	if err != nil {
+		pageMax = 1
+	}
+	return
 }
 
 func (t *Theme) parseName() {
@@ -112,7 +120,7 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genPages()
 	go t.genSuites()
 	for s := range t.Suites {
-		DonwloadSuite(s, 3, t.Path, s.Title)
+		DonwloadSuite(s, 3, t.Path, s.Title, true)
 	}
 	log.Println("DownloadOneTheme finished!")
 }

@@ -1,5 +1,6 @@
 {
   "base_path": "/go/data",
   "ip": "127.0.0.1",
-  "port": ":8080"
+  "port": ":8080",
+  "deploy_level": 0
 }

@@ -56,3 +56,9 @@ RUN apt update
 RUN apt install gcc-arm-linux-gnueabi -y
 RUN apt clean
 ```
+
+## Sup
+
+Super simple deployment tool - think of it like 'make' for a network of servers https://pressly.github.io/sup
+
+用来自动执行网络命令。

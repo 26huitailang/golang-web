@@ -1,5 +1,7 @@
 version: '2'
 
+# for raspberry docker
+
 services:
   web:
     build: .
@@ -9,4 +11,4 @@ services:
       - 8080:8080
     volumes:
       - .:/go
-      - ~/Downloads/mzitu_go:/go/data
+      - ~/Downloads/meituri:/go/data
