@@ -18,23 +18,23 @@
   version = "v3.2.0"
 
 [[projects]]
-  digest = "1:a998bed77ab5498070be27c2fc9ee332f6391dc6b538d0ea1e7f837934458a85"
+  digest = "1:27f44b9a8c2995c35ec25a9948ffa96f997f8eedbc5bb34838f10dcf620aaee3"
   name = "github.com/jinzhu/gorm"
   packages = [
     ".",
     "dialects/sqlite",
   ]
   pruneopts = "UT"
-  revision = "b7156195f7f3415f97c20abbd6aff894b847fee8"
-  version = "v1.9.8"
+  revision = "836fb2c19d84dac7b0272958dfb9af7cf0d0ade4"
+  version = "v1.9.10"
 
 [[projects]]
-  branch = "master"
   digest = "1:01ed62f8f4f574d8aff1d88caee113700a2b44c42351943fa73cc1808f736a50"
   name = "github.com/jinzhu/inflection"
   packages = ["."]
   pruneopts = "UT"
   revision = "f5c5f50e6090ae76a29240b61ae2a90dd810112e"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
@@ -142,14 +142,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9ebbac90dda5bf921f6243b64d5abd0674ada63cdee056ff671f8658a00034ab"
+  digest = "1:cb823a5f7777276059b25eaadda6a12892f3beb6d0deee01df0d8f8692ffcc82"
   name = "golang.org/x/crypto"
   packages = [
     "acme",
     "acme/autocert",
   ]
   pruneopts = "UT"
-  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
+  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
 
 [[projects]]
   branch = "master"
@@ -157,15 +157,15 @@
   name = "golang.org/x/net"
   packages = ["idna"]
   pruneopts = "UT"
-  revision = "461777fb6f67e8cb9d70cda16573678d085a74cf"
+  revision = "da137c7871d730100384dbcf36e6f8fa493aef5b"
 
 [[projects]]
   branch = "master"
-  digest = "1:8f5108406bc43c7669b0d67d282e40d05c9f268615fcaf8c1f0f76965aa3f09f"
+  digest = "1:730ba27cd66db3b98ec8f51a6f20d45ec277d490cca36b1f54e31d3fcaf4840e"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "1e42afee0f762ed3d76e6dd942e4181855fd1849"
+  revision = "04f50cda93cbb67f2afa353c52f342100e80e625"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
