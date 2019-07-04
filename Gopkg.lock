@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:1aeb8f4465c6d64059304b991f60b4812c219f6f5d896cb255c001566208e7d6"
+  name = "github.com/26huitailang/golang-web"
+  packages = [
+    "database",
+    "downloadsuite/suite",
+    "models",
+  ]
+  pruneopts = "UT"
+  revision = "0a374c1ae24294c314d707f362b93c8d139012b4"
+
+[[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
@@ -196,6 +208,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/26huitailang/golang-web/database",
+    "github.com/26huitailang/golang-web/downloadsuite/suite",
+    "github.com/26huitailang/golang-web/models",
     "github.com/jinzhu/gorm",
     "github.com/jinzhu/gorm/dialects/sqlite",
     "github.com/labstack/echo",
