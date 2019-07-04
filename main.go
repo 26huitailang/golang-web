@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"golang.org/x/net/websocket"
 )
 
 var DB = database.DB
@@ -59,8 +60,36 @@ func (c *CustomContext) SetConfig() {
 	log.Infoln("finish set config!")
 }
 
+func ws_hello(c echo.Context) error {
+	websocket.Handler(func(ws *websocket.Conn) {
+		defer ws.Close()
+		for {
+			// Write
+			err := websocket.Message.Send(ws, "Hello, Client!")
+			if err != nil {
+				c.Logger().Error(err)
+			}
+
+			// Read
+			msg := ""
+			err = websocket.Message.Receive(ws, &msg)
+			if err != nil {
+				c.Logger().Error(err)
+			}
+			fmt.Printf("%s\n", msg)
+		}
+	}).ServeHTTP(c.Response(), c.Request())
+	return nil
+}
+
+func ws_view(c echo.Context) error {
+	return c.Render(200, "layout:websocket", "")
+}
+
 func main() {
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &CustomContext{c}
@@ -78,7 +107,6 @@ func main() {
 			Output: logfile,
 		}))
 	}
-	e.Use(middleware.Logger())
 	// e.Use(middleware.CSRF())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup: "form:csrf",
@@ -92,6 +120,8 @@ func main() {
 	// mux = httpprof.WrapRouter(mux)
 	e.HTTPErrorHandler = customHTTPErrorHandler
 	e.GET("/", IndexHandle)
+	e.GET("/ws_view/ws", ws_hello)
+	e.GET("/ws_view", ws_view)
 	e.GET("/hello/:name", func(c echo.Context) error {
 		name := c.Param("name")
 		resp := fmt.Sprintf("Hello, %s!", name)
