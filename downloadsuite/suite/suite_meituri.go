@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var _ ISuiteOperator = (*MeituriSuite)(nil) // check implement interface
+
 // MeituriSuite struct 第一页的URL，suite的标题，第一个的HTML内容
 type MeituriSuite struct {
 	firstPage       string
