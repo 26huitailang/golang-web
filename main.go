@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/26huitailang/golang-web/database"
+	"golang_web/database"
 
 	// "log"
 	"net/http"
@@ -118,7 +118,7 @@ func main() {
 
 	// profiling
 	// mux = httpprof.WrapRouter(mux)
-	e.HTTPErrorHandler = customHTTPErrorHandler
+	// e.HTTPErrorHandler = customHTTPErrorHandler
 	e.GET("/", IndexHandle)
 	e.GET("/ws_view/ws", ws_hello)
 	e.GET("/ws_view", ws_view)

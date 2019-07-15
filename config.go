@@ -11,8 +11,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/26huitailang/golang-web/database"
-	"github.com/26huitailang/golang-web/models"
+	"golang_web/database"
+	"golang_web/models"
+
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 )

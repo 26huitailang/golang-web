@@ -63,19 +63,19 @@ func ReloadTemplates() {
 		templates = make(map[string]*template.Template)
 	}
 
-	layouts, err := filepath.Glob("./templates/layouts/*.html")
+	layouts, err := filepath.Glob("templates/layouts/*.html")
 	if err != nil {
 		err = errors.Wrap(err, "template")
 		log.Fatal(err)
 	}
 
-	pages, err := filepath.Glob("./templates/pages/*.html")
+	pages, err := filepath.Glob("templates/pages/*.html")
 	if err != nil {
 		err = errors.Wrap(err, "template")
 		log.Fatal(err)
 	}
 
-	global_shared, err := filepath.Glob("./views/shared/*.html")
+	globalShared, err := filepath.Glob("views/shared/*.html")
 	if err != nil {
 		err = errors.Wrap(err, "template")
 		log.Fatal(err)
@@ -86,13 +86,13 @@ func ReloadTemplates() {
 	// Generate our templates map from our layouts/ and includes/ directories
 	for _, layout := range layouts {
 		for _, page := range pages {
-			files := append(global_shared, layout, page)
+			files := append(globalShared, layout, page)
 			// todo - crawl_folder func call if include is folder
-			layout_base := filepath.Base(layout)
-			layout_short := layout_base[0:strings.LastIndex(layout_base, ".")]
-			page_base := filepath.Base(page)
-			page_short := page_base[0:strings.LastIndex(page_base, ".")]
-			templates[layout_short+":"+page_short] = template.Must(template.New(page_short).ParseFiles(files...))
+			layoutBase := filepath.Base(layout)
+			layoutShort := layoutBase[0:strings.LastIndex(layoutBase, ".")]
+			pageBase := filepath.Base(page)
+			pageShort := pageBase[0:strings.LastIndex(pageBase, ".")]
+			templates[layoutShort+":"+pageShort] = template.Must(template.New(pageShort).ParseFiles(files...))
 		}
 	}
 	log.Debugf("%v", templates)

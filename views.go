@@ -36,13 +36,16 @@ type themeQuery struct {
 
 func ThemeHandle(c echo.Context) (err error) {
 	themeID, err := strconv.Atoi(c.Param("id"))
+	println(themeID, "lwjeofiwjefijwef")
 	queryParams := c.QueryParams()
 	query := new(themeQuery)
 	if err = c.Bind(query); err != nil {
+		fmt.Printf("erererer1: %v", err)
 		return
 	}
 	log.Debugf("is_read: %v %T", query.IsRead, query.IsRead)
 	if err != nil {
+		fmt.Printf("erererer2: %v", err)
 		return c.Redirect(404, "/")
 	}
 

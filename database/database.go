@@ -3,7 +3,8 @@ package database
 import (
 	"log"
 
-	"github.com/26huitailang/golang-web/models"
+	"golang_web/models"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
