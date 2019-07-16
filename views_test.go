@@ -1,4 +1,4 @@
-package main_test
+package main
 
 import (
 	"golang_web/models"
@@ -14,6 +14,7 @@ import (
 func TestThemesHandle(t *testing.T) {
 	// Setup
 	e := echo.New()
+	e.Renderer = &Template{}
 	req := httptest.NewRequest(http.MethodGet, "/themes", nil)
 	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
@@ -29,7 +30,7 @@ func TestThemesHandle(t *testing.T) {
 	// Assertions
 	if assert.NoError(t, h.ThemesHandle(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
-		assert.Contains(t, "Hey Ha", rec.Body.String()) // todo: bad test
+		assert.Contains(t, rec.Body.String(), "Hey Ha") // todo: bad test
 	}
 }
 
