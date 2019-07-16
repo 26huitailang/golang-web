@@ -20,6 +20,7 @@ type MeituriSuite struct {
 	OrgURL          string
 	baseFolderPath  string
 	suiteFolderPath string
+	PageMax         int
 	countFanOut     int
 	ChanPage        chan string
 	ChFailedImg     chan string // 下载失败img放回
@@ -30,6 +31,7 @@ type IMTRParser interface {
 	PageContent(url string) string
 	ParseTitle(content string) (title string)
 	ParseOrgURL(content string) (URL string)
+	FindSuitePageMax(content string) (pageMax int)
 }
 
 type MeituriParser struct{}
@@ -47,6 +49,7 @@ func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *Me
 	suite.firtHTMLContent = suite.Parser.PageContent(firstPage)
 	suite.Title = suite.Parser.ParseTitle(suite.firtHTMLContent)
 	suite.OrgURL = suite.Parser.ParseOrgURL(suite.firtHTMLContent)
+	suite.PageMax = suite.Parser.FindSuitePageMax(suite.firtHTMLContent)
 	return suite
 }
 
@@ -96,10 +99,13 @@ func (s *MeituriSuite) Download(isTheme bool) {
 
 // GetPageURLs 接口方法，生成每页的URL
 func (s *MeituriSuite) GetPageURLs() {
+	getPageURLs(s)
+}
+
+func getPageURLs(s *MeituriSuite) {
 	defer close(s.ChanPage)
-	pageMax := FindSuitePageMax(s.firtHTMLContent)
 	// 没有分页，返回firstPage即可
-	for i := 1; i <= pageMax; i++ {
+	for i := 1; i <= s.PageMax; i++ {
 		switch i {
 		case 1: // 第一页特殊
 			s.ChanPage <- s.firstPage
@@ -135,20 +141,6 @@ func (s *MeituriSuite) GetImgURLs() <-chan string {
 		}
 	}()
 	return out
-}
-
-// 获取最大页码
-func FindSuitePageMax(firstHTMLContent string) (pageMax int) {
-	pageContentRegexp, _ := regexp.Compile(`html">([0-9]+)</a> <a class="a1`)
-	tmp := pageContentRegexp.FindString(firstHTMLContent)
-	intRe, _ := regexp.Compile(`[0-9]+`)
-	pageStr := intRe.FindString(tmp)
-	pageMax, err := strconv.Atoi(pageStr)
-	// 没有分页组件，表示就一页
-	if err != nil {
-		pageMax = 1
-	}
-	return
 }
 
 // 根绝页码和firstPage构建其余的page的URL
@@ -221,6 +213,24 @@ func (p MeituriParser) ParseOrgURL(content string) (URL string) {
 
 func (p MeituriParser) PageContent(url string) string {
 	return GetPageContent(url)
+}
+
+// 获取最大页码
+func (p MeituriParser) FindSuitePageMax(firstHTMLContent string) (pageMax int) {
+	return findSuitePageMax(firstHTMLContent)
+}
+
+func findSuitePageMax(content string) int {
+	pageContentRegexp, _ := regexp.Compile(`html">([0-9]+)</a> <a class="a1`)
+	tmp := pageContentRegexp.FindString(content)
+	intRe, _ := regexp.Compile(`[0-9]+`)
+	pageStr := intRe.FindString(tmp)
+	pageMax, err := strconv.Atoi(pageStr)
+	// 没有分页组件，表示就一页
+	if err != nil {
+		pageMax = 1
+	}
+	return pageMax
 }
 
 func parseTitle(content string) string {

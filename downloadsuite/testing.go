@@ -9,8 +9,12 @@ import (
 // StubParse 用于替换实际的IMTRParser接口
 type StubParser struct{}
 
+func (s StubParser) FindSuitePageMax(content string) (pageMax int) {
+	return findSuitePageMax(content)
+}
+
 func (s StubParser) PageContent(url string) string {
-	content, err := ioutil.ReadFile("mtr_suite.html")
+	content, err := ioutil.ReadFile(url)
 	if err != nil {
 		panic(err)
 	}
