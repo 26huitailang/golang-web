@@ -1,7 +1,8 @@
-package main
+package views
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -10,23 +11,49 @@ import (
 
 	"github.com/labstack/echo/middleware"
 
-	"github.com/26huitailang/golang-web/downloadsuite/suite"
-	"github.com/26huitailang/golang-web/models"
+	suite "golang_web/downloadsuite"
+
+	"golang_web/models"
+
 	"github.com/labstack/echo"
+
+	"golang_web/config"
+	"golang_web/database"
 
 	log "github.com/sirupsen/logrus"
 )
+
+var DB = database.DB
+
+type DataStore interface {
+	GetThemes() []models.Theme
+}
+
+type Handler struct {
+	Store DataStore
+}
+
+type DatabaseStore struct {
+	DB *gorm.DB
+}
+
+func (db *DatabaseStore) GetThemes() []models.Theme {
+	var themes []models.Theme
+	DB.Order("name").Find(&themes)
+	return themes
+}
 
 func IndexHandle(c echo.Context) (err error) {
 	http.Redirect(c.Response(), c.Request(), "/themes", 301)
 	return nil
 }
 
-func ThemesHandle(c echo.Context) (err error) {
-	var themes []models.Theme
-	DB.Order("name").Find(&themes)
-
-	c.Render(http.StatusOK, "layout:themes", themes)
+func (h *Handler) ThemesHandle(c echo.Context) (err error) {
+	themes := h.Store.GetThemes()
+	err = c.Render(http.StatusOK, "layout:themes", themes)
+	if err != nil {
+		panic("render layout:themes error")
+	}
 	return
 }
 
@@ -156,7 +183,7 @@ func InitDBHandle(c echo.Context) (err error) {
 	DB.AutoMigrate(models.Theme{}, models.Suite{}, models.Image{})
 	log.Println("start init db ...")
 	// todo: 这里因为用了session，所以在提交前也是看不到任何数据的
-	go Config.InitTheme()
+	go config.Config.InitTheme()
 	return c.Redirect(302, "/")
 }
 
@@ -195,9 +222,9 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 			}
 		}()
 		s := suite.NewSuite(url)
-		suite.DonwloadSuite(s, 5, Config.BasePath, s.Title, false)
+		suite.DonwloadSuite(s, 5, config.Config.BasePath, s.Title, false)
 		// 重新加载进去
-		Config.InitTheme()
+		config.Config.InitTheme()
 	}()
 	return c.String(http.StatusAccepted, "task suite sent ...")
 }
@@ -221,10 +248,10 @@ func TaskThemeHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		t := suite.NewTheme(url, Config.BasePath)
+		t := suite.NewTheme(url, config.Config.BasePath)
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
-		Config.InitTheme()
+		config.Config.InitTheme()
 	}()
 	return c.String(http.StatusAccepted, "task theme sent ...")
 }

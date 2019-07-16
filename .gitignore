@@ -20,3 +20,9 @@ test.db
 # custom config
 config_custom.json
 .idea
+
+# log
+*.log
+
+# build binaries
+main

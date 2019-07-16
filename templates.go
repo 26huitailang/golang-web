@@ -54,7 +54,11 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 		log.Errorf("templates: name not found -> %s template", name)
 		return err
 	}
-	return tmpl.ExecuteTemplate(w, "layout", data) // layout -> defined in each layout template
+	err := tmpl.ExecuteTemplate(w, "layout", data) // layout -> defined in each layout template
+	if err != nil {
+		log.Panicf("Render: %v", err)
+	}
+	return err
 }
 
 // Load templates on program initialisation
@@ -92,6 +96,7 @@ func ReloadTemplates() {
 			layoutShort := layoutBase[0:strings.LastIndex(layoutBase, ".")]
 			pageBase := filepath.Base(page)
 			pageShort := pageBase[0:strings.LastIndex(pageBase, ".")]
+			//pageShort := pageBase
 			templates[layoutShort+":"+pageShort] = template.Must(template.New(pageShort).ParseFiles(files...))
 		}
 	}
