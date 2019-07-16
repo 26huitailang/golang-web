@@ -11,14 +11,13 @@ import (
 
 	"github.com/labstack/echo/middleware"
 
-	suite "golang_web/downloadsuite"
-
 	"golang_web/models"
 
 	"github.com/labstack/echo"
 
 	"golang_web/config"
 	"golang_web/database"
+	"golang_web/downloadsuite"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -221,8 +220,9 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		s := suite.NewMeituriSuite(url)
-		suite.DonwloadSuite(s, 5, config.Config.BasePath, s.Title, false)
+		operator := downloadsuite.NewMeituriSuite(url, config.Config.BasePath)
+		suite := downloadsuite.NewSuite(operator)
+		suite.Operator.Download(false)
 		// 重新加载进去
 		config.Config.InitTheme()
 	}()
@@ -248,7 +248,7 @@ func TaskThemeHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		t := suite.NewTheme(url, config.Config.BasePath)
+		t := downloadsuite.NewTheme(url, config.Config.BasePath)
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
 		config.Config.InitTheme()
