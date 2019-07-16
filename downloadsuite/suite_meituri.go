@@ -1,8 +1,9 @@
-package suite
+package downloadsuite
 
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"regexp"
 	"strconv"
@@ -17,12 +18,21 @@ type MeituriSuite struct {
 	Title           string
 	firtHTMLContent string
 	OrgURL          string
+	baseFolderPath  string
+	suiteFolderPath string
+	countFanOut     int
+	ChanPage        chan string
+	ChFailedImg     chan string // 下载失败img放回
 }
 
-// NewSuite 初始化一个MeituriSuite结构
-func NewSuite(firstPage string) *MeituriSuite {
+// NewMeituriSuite 初始化一个MeituriSuite结构
+func NewMeituriSuite(firstPage string, folderPath string) *MeituriSuite {
 	suite := &MeituriSuite{
-		firstPage: firstPage,
+		firstPage:      firstPage,
+		countFanOut:    5,
+		baseFolderPath: folderPath,
+		ChanPage:       make(chan string),
+		ChFailedImg:    make(chan string),
 	}
 	suite.firtHTMLContent = GetPageContent(firstPage)
 	suite.parseTitle()
@@ -30,30 +40,74 @@ func NewSuite(firstPage string) *MeituriSuite {
 	return suite
 }
 
+// Download 实现接口方法，下载chImg channel中的URL
+func (s *MeituriSuite) Download(isTheme bool) {
+	go s.GetPageURLs()
+
+	var chImgs []<-chan string
+	for i := 0; i < s.countFanOut; i++ {
+		ch := s.GetImgURLs()
+		chImgs = append(chImgs, ch)
+	}
+	// 回收多个channel的结果
+	chImg := Merge(chImgs...)
+
+	// 文件夹检查
+	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
+	// todo: 如果有两个呢？是否只取第一个
+	if !isTheme {
+		themeURL := s.OrgURL
+		theme := NewTheme(themeURL, s.baseFolderPath)
+		s.suiteFolderPath = path.Join(s.baseFolderPath, theme.Name, s.Title)
+	} else {
+		s.suiteFolderPath = path.Join(s.baseFolderPath, s.Title)
+	}
+
+	isFolderExist := IsFileOrFolderExists(s.suiteFolderPath)
+	if !isFolderExist {
+		fmt.Println("创建文件夹: ", s.suiteFolderPath)
+		err := os.MkdirAll(s.suiteFolderPath, os.ModePerm)
+		CheckError(err)
+	}
+
+	var chDownloads []<-chan string
+	for i := 0; i < s.countFanOut; i++ {
+		ch := s.downloader(chImg)
+		chDownloads = append(chDownloads, ch)
+	}
+
+	// 回收下载结果
+	finish := Merge(chDownloads...)
+
+	for ret := range finish {
+		fmt.Println("finish: ", ret)
+	}
+}
+
 // GetPageURLs 接口方法，生成每页的URL
-func (suite *MeituriSuite) GetPageURLs(chPage chan string) {
-	defer close(chPage)
-	pageMax := FindSuitePageMax(suite.firtHTMLContent)
+func (s *MeituriSuite) GetPageURLs() {
+	defer close(s.ChanPage)
+	pageMax := FindSuitePageMax(s.firtHTMLContent)
 	// 没有分页，返回firstPage即可
 	for i := 1; i <= pageMax; i++ {
 		switch i {
 		case 1: // 第一页特殊
-			chPage <- suite.firstPage
+			s.ChanPage <- s.firstPage
 		default:
-			pageURL := suite.generatePageURL(i)
-			chPage <- pageURL
+			pageURL := s.generatePageURL(i)
+			s.ChanPage <- pageURL
 		}
 	}
 }
 
 // GetImgURLs 实现接口方法，获取每页的ImgURL放入channel
-func (suite *MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan string) <-chan string {
+func (s *MeituriSuite) GetImgURLs() <-chan string {
 	out := make(chan string)
 	go func() {
 		defer close(out)
 		for {
 			select {
-			case url, ok := <-chPage:
+			case url, ok := <-s.ChanPage:
 				if !ok {
 					fmt.Println("no more url")
 					return
@@ -65,21 +119,12 @@ func (suite *MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan s
 				for _, imgSrc := range imgSrcs {
 					out <- imgSrc
 				}
-			case url := <-chFailedImg:
+			case url := <-s.ChFailedImg:
 				out <- url
 			}
 		}
 	}()
 	return out
-}
-
-// Download 实现接口方法，下载chImg channel中的URL
-func (suite *MeituriSuite) Download(chImg <-chan string, chFailedImg chan string, folderPath string) <-chan string {
-	finish := make(chan string)
-	go func() {
-		downloader(chImg, finish, chFailedImg, folderPath)
-	}()
-	return finish
 }
 
 // 获取最大页码
@@ -105,24 +150,29 @@ func (suite *MeituriSuite) generatePageURL(page int) string {
 
 // todo: 如果下面的方法是MeituriSuite使用并不能公共使用的话，写到struct下面
 // 下载，消费者
-func downloader(inCh <-chan string, finishCh chan string, chFailedImg chan string, suiteFolderPath string) {
-	for url := range inCh {
-		nameStrings := strings.Split(url, "/")
-		name := nameStrings[len(nameStrings)-1]
-		name = path.Join(suiteFolderPath, name)
-		if IsFileOrFolderExists(name) {
-			fmt.Println("已存在: ", name)
-			continue
+func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
+	finish := make(chan string)
+
+	go func() {
+		defer close(finish)
+		for url := range inCh {
+			nameStrings := strings.Split(url, "/")
+			name := nameStrings[len(nameStrings)-1]
+			name = path.Join(s.suiteFolderPath, name)
+			if IsFileOrFolderExists(name) {
+				fmt.Println("已存在: ", name)
+				continue
+			}
+			content := getImageContent(url)
+			if ioutil.WriteFile(name, content, 0644) == nil {
+				finish <- url
+			} else {
+				fmt.Println("failed: ", url, " 放入chFailedImg")
+				s.ChFailedImg <- url
+			}
 		}
-		content := getImageContent(url)
-		if ioutil.WriteFile(name, content, 0644) == nil {
-			finishCh <- url
-		} else {
-			fmt.Println("failed: ", url, " 放入chFailedImg")
-			chFailedImg <- url
-		}
-	}
-	defer close(finishCh)
+	}()
+	return finish
 }
 
 // 解析div class="content" 部分
@@ -164,13 +214,8 @@ func ParseOrgURL(content string) (url string) {
 	// println(content)
 	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)<a href="(.*?)" target="_blank">`) // 非贪婪
 	texts := re.FindStringSubmatch(content)
-	println("texts:", texts)
+	fmt.Printf("texts: %v", texts)
 	url = texts[2]
 	println("ParseOrgURL:", url)
 	return
-}
-
-// GetOrgURL 获取对象的该属性
-func (suite *MeituriSuite) GetOrgURL() string {
-	return suite.OrgURL
 }

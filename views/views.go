@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/middleware"
 
-	suite "golang_web/suite"
+	suite "golang_web/downloadsuite"
 
 	"golang_web/models"
 
@@ -129,7 +129,7 @@ func SuiteHandle(c echo.Context) (err error) {
 	var suite models.Suite
 	var images []models.Image
 	DB.Where("id = ?", sutieID).Find(&suite)
-	log.Debugf("suite: %v", suite)
+	log.Debugf("downloadsuite: %v", suite)
 	DB.Model(&suite).Related(&images).Order("name")
 	log.Debugf("images: %v", images)
 	data := struct {
@@ -139,7 +139,7 @@ func SuiteHandle(c echo.Context) (err error) {
 		suite,
 		images,
 	}
-	return c.Render(200, "layout:suite", data)
+	return c.Render(200, "layout:downloadsuite", data)
 }
 
 func SuiteReadHandle(c echo.Context) (err error) {
@@ -221,12 +221,12 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		s := suite.NewSuite(url)
+		s := suite.NewMeituriSuite(url)
 		suite.DonwloadSuite(s, 5, config.Config.BasePath, s.Title, false)
 		// 重新加载进去
 		config.Config.InitTheme()
 	}()
-	return c.String(http.StatusAccepted, "task suite sent ...")
+	return c.String(http.StatusAccepted, "task downloadsuite sent ...")
 }
 
 func TaskThemeHandle(c echo.Context) (err error) {

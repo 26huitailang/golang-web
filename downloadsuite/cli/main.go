@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path"
 
-	suite "golang_web/suite"
+	"golang_web/downloadsuite"
 )
 
 // todo: 接收参数，只承担一个下载的角色
@@ -32,11 +32,12 @@ func main() {
 		panic("folder should be absolute")
 	}
 	if isTheme {
-		t := suite.NewTheme(firstPage, folderSave)
+		t := downloadsuite.NewTheme(firstPage, folderSave)
 		t.DownloadOneTheme()
 	} else {
-		s := suite.NewSuite(firstPage)
-		suite.DonwloadSuite(s, 5, folderSave, s.Title, isTheme)
+		operator := downloadsuite.NewMeituriSuite(firstPage, folderSave)
+		s := downloadsuite.NewSuite(operator)
+		s.Operator.Download(isTheme)
 	}
 	fmt.Println("✅")
 }

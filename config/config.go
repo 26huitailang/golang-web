@@ -145,7 +145,7 @@ func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out ch
 		suite := &models.Suite{Name: info.Name(), ThemeID: theme.ID}
 		// 跳过已存在的suite
 		if err := tx.Create(suite).Error; err != nil {
-			log.Infoln("db instert suite skip existed:", suite.Name)
+			log.Infoln("db instert downloadsuite skip existed:", suite.Name)
 			return nil
 		}
 		suitePath := filepath.Join(themePath, info.Name())

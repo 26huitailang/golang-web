@@ -1,7 +1,7 @@
-package suite_test
+package downloadsuite_test
 
 import (
-	"golang_web/suite"
+	"golang_web/downloadsuite"
 	"io/ioutil"
 	"testing"
 )
@@ -9,9 +9,9 @@ import (
 func TestParseOrgURL(t *testing.T) {
 	target := "https://www.meituri.com/x/82/"
 	data, err := ioutil.ReadFile("content.html")
-	suite.CheckError(err)
+	downloadsuite.CheckError(err)
 	// todo: 不要测试内部函数
-	ret := suite.ParseOrgURL(string(data))
+	ret := downloadsuite.ParseOrgURL(string(data))
 	if ret != target {
 		t.Fatalf("Expected: %s, Got: %s", target, ret)
 	}
@@ -22,7 +22,7 @@ func TestParseOrgURL(t *testing.T) {
 					<a href="https://www.meituri.com/x/14/" target="_blank">丝享家</a>
 	</p>`
 	output := "https://www.meituri.com/x/12/"
-	ret2 := suite.ParseOrgURL(input)
+	ret2 := downloadsuite.ParseOrgURL(input)
 	if ret2 != output {
 		t.Fatalf("Expected: %s, Got: %s", target, ret)
 	}
@@ -37,7 +37,7 @@ func TestFindSuitePageMax(t *testing.T) {
 	output := []int{12, 1}
 	for i, content := range input {
 		// todo: 不要测试内部函数
-		out := suite.FindSuitePageMax(content)
+		out := downloadsuite.FindSuitePageMax(content)
 		if out != output[i] {
 			t.Fatalf("Expected %d, Got %d", output[i], out)
 		}

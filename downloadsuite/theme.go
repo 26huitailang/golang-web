@@ -1,4 +1,4 @@
-package suite
+package downloadsuite
 
 import (
 	"fmt"
@@ -105,7 +105,7 @@ func (t *Theme) genSuites() {
 		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
-			suite := NewSuite(suiteURL)
+			suite := NewMeituriSuite(suiteURL, t.Path)
 			t.Suites <- suite
 			log.Println(suiteURL)
 		}
@@ -120,7 +120,8 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genPages()
 	go t.genSuites()
 	for s := range t.Suites {
-		DonwloadSuite(s, 3, t.Path, s.Title, true)
+		suite := NewSuite(s)
+		suite.Operator.Download(true)
 	}
 	log.Println("DownloadOneTheme finished!")
 }

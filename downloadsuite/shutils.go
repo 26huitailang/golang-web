@@ -1,4 +1,4 @@
-package suite
+package downloadsuite
 
 // 流水线进阶版，fan-out fan-in
 // 多个goroutine去读取生产数据，这个是fan-out

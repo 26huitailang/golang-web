@@ -1,4 +1,4 @@
-package suite
+package downloadsuite
 
 import (
 	"io/ioutil"
@@ -18,8 +18,8 @@ func TestParseSuites(t *testing.T) {
 // 	// todo: 试试gomock工具
 // 	suiteURL := "https://www.meituri.com/a/26718/"
 // 	title := "黑丝亮皮连衣超短裙 [森萝财团] [BETA-038] 写真集"
-// 	suite := NewSuite(suiteURL)
-// 	assert.Equal(t, suite.Title, title, "Title should be the same.")
+// 	downloadsuite := NewMeituriSuite(suiteURL)
+// 	assert.Equal(t, downloadsuite.Title, title, "Title should be the same.")
 // }
 
 func TestParseThemePageMax(t *testing.T) {
