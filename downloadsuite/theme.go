@@ -1,4 +1,4 @@
-package suite
+package downloadsuite
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ func NewTheme(firstPage, folderToSave string) *Theme {
 }
 
 func (t *Theme) init(folderToSave string) {
-	t.FirstPageContent = getPageContent(t.FirstURL)
+	t.FirstPageContent = GetPageContent(t.FirstURL)
 	t.parseName()
 	t.Path = path.Join(folderToSave, t.Name)
 	if ok := IsFileOrFolderExists(t.Path); !ok {
@@ -102,10 +102,10 @@ func (t *Theme) genSuites() {
 	// 放入channel
 	for pageURL := range t.Pages {
 		log.Println("Page:", pageURL)
-		pageContent := getPageContent(pageURL)
+		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
-			suite := NewSuite(suiteURL)
+			suite := NewMeituriSuite(suiteURL, t.Path, MeituriParser{})
 			t.Suites <- suite
 			log.Println(suiteURL)
 		}
@@ -120,7 +120,8 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genPages()
 	go t.genSuites()
 	for s := range t.Suites {
-		DonwloadSuite(s, 3, t.Path, s.Title, true)
+		suite := NewSuite(s)
+		suite.Operator.Download(true)
 	}
 	log.Println("DownloadOneTheme finished!")
 }

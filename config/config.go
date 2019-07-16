@@ -1,7 +1,8 @@
-package main
+package config
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,23 +11,27 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/26huitailang/golang-web/database"
-	"github.com/26huitailang/golang-web/models"
+	"golang_web/database"
+	"golang_web/models"
+
 	"github.com/jinzhu/gorm"
 	log "github.com/sirupsen/logrus"
 )
 
 var Config *Configuration
 var db = database.DB
+var portInput string
 
 type Configuration struct {
 	BasePath    string `json:"base_path"`
 	IP          string `json:"ip"`
-	Port        string `json:"port"`
 	DeployLevel int    `json:"deploy_level"`
+	Port        string // 从外部输入
 }
 
 func init() {
+	flag.StringVar(&portInput, "port", ":8080", "监听端口")
+	flag.Parse()
 	Config = &Configuration{}
 	Config.initConfiguration()
 	fmt.Printf("COFIG: %v", Config)
@@ -45,6 +50,7 @@ func (conf *Configuration) initConfiguration() {
 	}
 	json.Unmarshal(jsonData, &conf)
 	conf.initCustomConfig()
+	conf.Port = portInput
 	log.Println("config:", conf)
 }
 
@@ -139,7 +145,7 @@ func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out ch
 		suite := &models.Suite{Name: info.Name(), ThemeID: theme.ID}
 		// 跳过已存在的suite
 		if err := tx.Create(suite).Error; err != nil {
-			log.Infoln("db instert suite skip existed:", suite.Name)
+			log.Infoln("db instert downloadsuite skip existed:", suite.Name)
 			return nil
 		}
 		suitePath := filepath.Join(themePath, info.Name())

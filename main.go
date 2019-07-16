@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/26huitailang/golang-web/database"
+	"golang_web/config"
+	"golang_web/database"
+	"golang_web/views"
 
 	// "log"
 	"net/http"
@@ -14,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"golang.org/x/net/websocket"
 )
 
 var DB = database.DB
@@ -55,22 +58,50 @@ type CustomContext struct {
 
 func (c *CustomContext) SetConfig() {
 	log.Infoln("setting config...")
-	c.Set("config", Config)
+	c.Set("config", config.Config)
 	log.Infoln("finish set config!")
+}
+
+func ws_hello(c echo.Context) error {
+	websocket.Handler(func(ws *websocket.Conn) {
+		defer ws.Close()
+		for {
+			// Write
+			err := websocket.Message.Send(ws, "Hello, Client!")
+			if err != nil {
+				c.Logger().Error(err)
+			}
+
+			// Read
+			msg := ""
+			err = websocket.Message.Receive(ws, &msg)
+			if err != nil {
+				c.Logger().Error(err)
+			}
+			fmt.Printf("%s\n", msg)
+		}
+	}).ServeHTTP(c.Response(), c.Request())
+	return nil
+}
+
+func ws_view(c echo.Context) error {
+	return c.Render(200, "layout:websocket", "")
 }
 
 func main() {
 	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &CustomContext{c}
 			cc.SetConfig()
-			println("CCCCCCC:", cc.Get("config").(*Configuration).Port)
+			println("CCCCCCC:", cc.Get("config").(*config.Configuration).Port)
 			return h(cc)
 		}
 	})
 
-	if Config.DeployLevel >= Development {
+	if config.Config.DeployLevel >= Development {
 		e.Use(middleware.Logger())
 	} else {
 		logfile, _ := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
@@ -78,7 +109,6 @@ func main() {
 			Output: logfile,
 		}))
 	}
-	e.Use(middleware.Logger())
 	// e.Use(middleware.CSRF())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		TokenLookup: "form:csrf",
@@ -88,37 +118,41 @@ func main() {
 	var EchoTemplate = &Template{}
 	e.Renderer = EchoTemplate
 
+	store := &views.DatabaseStore{DB: DB}
+	handler := &views.Handler{Store: store}
 	// profiling
 	// mux = httpprof.WrapRouter(mux)
-	e.HTTPErrorHandler = customHTTPErrorHandler
-	e.GET("/", IndexHandle)
+	// e.HTTPErrorHandler = customHTTPErrorHandler
+	e.GET("/", views.IndexHandle)
+	e.GET("/ws_view/ws", ws_hello)
+	e.GET("/ws_view", ws_view)
 	e.GET("/hello/:name", func(c echo.Context) error {
 		name := c.Param("name")
 		resp := fmt.Sprintf("Hello, %s!", name)
 		return c.String(http.StatusOK, resp)
 	})
 
-	e.POST("/task/suite", TaskSuiteHandle)
-	e.POST("/task/theme", TaskThemeHandle)
+	e.POST("/task/downloadsuite", views.TaskSuiteHandle)
+	e.POST("/task/theme", views.TaskThemeHandle)
 
-	e.GET("/themes", ThemesHandle)
-	e.GET("/themes/:id", ThemeHandle)
-	e.GET("/suites", SuitesHandle)
-	e.GET("/suites/:suite_id", SuiteHandle)
-	e.GET("/suites/:id/doread", SuiteReadHandle)
-	e.GET("/suites/:id/dolike", SuiteLikeHandle)
+	e.GET("/themes", handler.ThemesHandle)
+	e.GET("/themes/:id", views.ThemeHandle)
+	e.GET("/suites", views.SuitesHandle)
+	e.GET("/suites/:suite_id", views.SuiteHandle)
+	e.GET("/suites/:id/doread", views.SuiteReadHandle)
+	e.GET("/suites/:id/dolike", views.SuiteLikeHandle)
 
 	devopsGroup := e.Group("/devops")
-	devopsGroup.POST("/initdb", InitDBHandle)
-	devopsGroup.GET("", DevopsHandle)
-	e.Static("/image/*filepath", Config.BasePath)
+	devopsGroup.POST("/initdb", views.InitDBHandle)
+	devopsGroup.GET("", views.DevopsHandle)
+	e.Static("/image/*filepath", config.Config.BasePath)
 
-	addr := fmt.Sprintf("%s%s", Config.IP, Config.Port)
+	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
 	// server := http.Server{
 	// 	Addr:    addr,
 	// 	Handler: mux,
 	// }
 	// server.ListenAndServe()
-	e.Logger.Fatal(e.Start(Config.Port))
+	e.Logger.Fatal(e.Start(config.Config.Port))
 }

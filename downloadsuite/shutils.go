@@ -1,4 +1,4 @@
-package suite
+package downloadsuite
 
 // 流水线进阶版，fan-out fan-in
 // 多个goroutine去读取生产数据，这个是fan-out
@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func checkError(e error) {
+func CheckError(e error) {
 	if e != nil {
 		panic(e)
 	}
@@ -30,7 +30,7 @@ func producer(pageUrls ...string) <-chan string {
 }
 
 // 收集结果，所有的img srcs
-func merge(channels ...<-chan string) <-chan string {
+func Merge(channels ...<-chan string) <-chan string {
 	out := make(chan string, 10)
 	var wg sync.WaitGroup // 群同步
 	collect := func(in <-chan string) {
@@ -82,20 +82,20 @@ func IsFile(path string) bool {
 }
 
 // 获取每页的Html内容
-func getURLContent(url string) []byte {
+func GetURLContent(url string) []byte {
 	resp, err := http.Get(url)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
-	checkError(err)
+	CheckError(err)
 	body, err := ioutil.ReadAll(resp.Body)
-	checkError(err)
+	CheckError(err)
 	// fmt.Println(string(body))
 	return body
 }
 
 // 获取每页的Html内容
-func getPageContent(url string) string {
-	body := getURLContent(url)
+func GetPageContent(url string) string {
+	body := GetURLContent(url)
 	return string(body)
 }
