@@ -105,7 +105,7 @@ func (t *Theme) genSuites() {
 		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
-			suite := NewMeituriSuite(suiteURL, t.Path)
+			suite := NewMeituriSuite(suiteURL, t.Path, MeituriParser{})
 			t.Suites <- suite
 			log.Println(suiteURL)
 		}

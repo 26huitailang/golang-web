@@ -220,7 +220,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		operator := downloadsuite.NewMeituriSuite(url, config.Config.BasePath)
+		operator := downloadsuite.NewMeituriSuite(url, config.Config.BasePath, downloadsuite.MeituriParser{})
 		suite := downloadsuite.NewSuite(operator)
 		suite.Operator.Download(false)
 		// 重新加载进去

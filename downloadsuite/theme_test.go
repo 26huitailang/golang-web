@@ -6,7 +6,7 @@ import (
 )
 
 func TestParseSuites(t *testing.T) {
-	data, err := ioutil.ReadFile("content_theme.html")
+	data, err := ioutil.ReadFile("mtr_theme.html")
 	CheckError(err)
 	ret := parseSuites(string(data))
 	if len(ret) != 40 {

@@ -23,20 +23,30 @@ type MeituriSuite struct {
 	countFanOut     int
 	ChanPage        chan string
 	ChFailedImg     chan string // 下载失败img放回
+	Parser          IMTRParser
 }
 
+type IMTRParser interface {
+	PageContent(url string) string
+	ParseTitle(content string) (title string)
+	ParseOrgURL(content string) (URL string)
+}
+
+type MeituriParser struct{}
+
 // NewMeituriSuite 初始化一个MeituriSuite结构
-func NewMeituriSuite(firstPage string, folderPath string) *MeituriSuite {
+func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *MeituriSuite {
 	suite := &MeituriSuite{
 		firstPage:      firstPage,
 		countFanOut:    5,
 		baseFolderPath: folderPath,
 		ChanPage:       make(chan string),
 		ChFailedImg:    make(chan string),
+		Parser:         parser,
 	}
-	suite.firtHTMLContent = GetPageContent(firstPage)
-	suite.parseTitle()
-	suite.getOrgURL()
+	suite.firtHTMLContent = suite.Parser.PageContent(firstPage)
+	suite.Title = suite.Parser.ParseTitle(suite.firtHTMLContent)
+	suite.OrgURL = suite.Parser.ParseOrgURL(suite.firtHTMLContent)
 	return suite
 }
 
@@ -142,10 +152,10 @@ func FindSuitePageMax(firstHTMLContent string) (pageMax int) {
 }
 
 // 根绝页码和firstPage构建其余的page的URL
-func (suite *MeituriSuite) generatePageURL(page int) string {
+func (s *MeituriSuite) generatePageURL(page int) string {
 	// https://www.meituri.com/a/26718/2.html
 	pageStr := strconv.Itoa(page)
-	return suite.firstPage + pageStr + ".html"
+	return s.firstPage + pageStr + ".html"
 }
 
 // todo: 如果下面的方法是MeituriSuite使用并不能公共使用的话，写到struct下面
@@ -199,23 +209,25 @@ func getImageContent(url string) []byte {
 	return body
 }
 
-func (suite *MeituriSuite) parseTitle() {
+func (p MeituriParser) ParseTitle(firtHTMLContent string) (title string) {
+	title = parseTitle(firtHTMLContent)
+	return
+}
+
+func parseTitle(content string) string {
 	titleRegexp, _ := regexp.Compile(`<h1>(.+?)</h1>`)
-	title := titleRegexp.FindStringSubmatch(suite.firtHTMLContent)
-	suite.Title = title[1]
+	rets := titleRegexp.FindStringSubmatch(content)
+	return rets[1]
 }
 
-func (suite *MeituriSuite) getOrgURL() {
-	url := ParseOrgURL(suite.firtHTMLContent)
-	suite.OrgURL = url
-}
-
-func ParseOrgURL(content string) (url string) {
-	// println(content)
+func (p MeituriParser) ParseOrgURL(content string) (URL string) {
 	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)<a href="(.*?)" target="_blank">`) // 非贪婪
 	texts := re.FindStringSubmatch(content)
-	fmt.Printf("texts: %v", texts)
-	url = texts[2]
-	println("ParseOrgURL:", url)
+	URL = texts[2]
+	println("ParseOrgURL:", URL)
 	return
+}
+
+func (p MeituriParser) PageContent(url string) string {
+	return GetPageContent(url)
 }
