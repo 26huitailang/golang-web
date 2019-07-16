@@ -214,20 +214,25 @@ func (p MeituriParser) ParseTitle(firtHTMLContent string) (title string) {
 	return
 }
 
+func (p MeituriParser) ParseOrgURL(content string) (URL string) {
+	URL = parseOrgURL(content)
+	return
+}
+
+func (p MeituriParser) PageContent(url string) string {
+	return GetPageContent(url)
+}
+
 func parseTitle(content string) string {
 	titleRegexp, _ := regexp.Compile(`<h1>(.+?)</h1>`)
 	rets := titleRegexp.FindStringSubmatch(content)
 	return rets[1]
 }
 
-func (p MeituriParser) ParseOrgURL(content string) (URL string) {
+func parseOrgURL(content string) string {
 	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)<a href="(.*?)" target="_blank">`) // 非贪婪
 	texts := re.FindStringSubmatch(content)
-	URL = texts[2]
-	println("ParseOrgURL:", URL)
-	return
-}
-
-func (p MeituriParser) PageContent(url string) string {
-	return GetPageContent(url)
+	URL := texts[2]
+	//println("ParseOrgURL:", URL)
+	return URL
 }

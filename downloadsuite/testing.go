@@ -22,7 +22,7 @@ func (s StubParser) ParseTitle(content string) (title string) {
 }
 
 func (s StubParser) ParseOrgURL(content string) (URL string) {
-	return ""
+	return parseOrgURL(content)
 }
 
 func AssertNoError(t *testing.T, err error) {
