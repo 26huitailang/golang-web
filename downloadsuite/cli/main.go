@@ -35,7 +35,7 @@ func main() {
 		t := downloadsuite.NewTheme(firstPage, folderSave)
 		t.DownloadOneTheme()
 	} else {
-		operator := downloadsuite.NewMeituriSuite(firstPage, folderSave)
+		operator := downloadsuite.NewMeituriSuite(firstPage, folderSave, &downloadsuite.MeituriParser{})
 		s := downloadsuite.NewSuite(operator)
 		s.Operator.Download(isTheme)
 	}
