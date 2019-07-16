@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/middleware"
 
-	suite "golang_web/downloadsuite"
+	suite "golang_web/suite"
 
 	"golang_web/models"
 

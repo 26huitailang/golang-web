@@ -32,7 +32,7 @@ func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, ti
 		chImgs = append(chImgs, ch)
 	}
 	// 回收多个channel的结果
-	chImg := merge(chImgs...)
+	chImg := Merge(chImgs...)
 
 	// 文件夹检查
 	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
@@ -50,7 +50,7 @@ func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, ti
 	if !isFolderExist {
 		fmt.Println("创建文件夹: ", suiteFolderPath)
 		err := os.MkdirAll(suiteFolderPath, os.ModePerm)
-		checkError(err)
+		CheckError(err)
 	}
 
 	var chDownloads []<-chan string
@@ -60,7 +60,7 @@ func DonwloadSuite(iSuite ISuiteOperator, countFanOut int, folderPath string, ti
 	}
 
 	// 回收下载结果
-	finish := merge(chDownloads...)
+	finish := Merge(chDownloads...)
 
 	for ret := range finish {
 		fmt.Println("finish: ", ret)

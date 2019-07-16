@@ -33,7 +33,7 @@ func NewTheme(firstPage, folderToSave string) *Theme {
 }
 
 func (t *Theme) init(folderToSave string) {
-	t.FirstPageContent = getPageContent(t.FirstURL)
+	t.FirstPageContent = GetPageContent(t.FirstURL)
 	t.parseName()
 	t.Path = path.Join(folderToSave, t.Name)
 	if ok := IsFileOrFolderExists(t.Path); !ok {
@@ -102,7 +102,7 @@ func (t *Theme) genSuites() {
 	// 放入channel
 	for pageURL := range t.Pages {
 		log.Println("Page:", pageURL)
-		pageContent := getPageContent(pageURL)
+		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
 			suite := NewSuite(suiteURL)

@@ -7,7 +7,7 @@ import (
 
 func TestParseSuites(t *testing.T) {
 	data, err := ioutil.ReadFile("content_theme.html")
-	checkError(err)
+	CheckError(err)
 	ret := parseSuites(string(data))
 	if len(ret) != 40 {
 		t.Fatal("parseSuites test data should be len 40, got", len(ret))

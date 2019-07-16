@@ -9,7 +9,7 @@ import (
 
 func TestGetImgUrls(t *testing.T) {
 	data, err := ioutil.ReadFile("content.html")
-	checkError(err)
+	CheckError(err)
 	divContent := parseDivContent(string(data))
 	if divContent == "" {
 		t.Fatal("div content is empty")

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path"
 
-	suite "golang_web/downloadsuite"
+	suite "golang_web/suite"
 )
 
 // todo: 接收参数，只承担一个下载的角色

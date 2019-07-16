@@ -24,7 +24,7 @@ func NewSuite(firstPage string) *MeituriSuite {
 	suite := &MeituriSuite{
 		firstPage: firstPage,
 	}
-	suite.firtHTMLContent = getPageContent(firstPage)
+	suite.firtHTMLContent = GetPageContent(firstPage)
 	suite.parseTitle()
 	suite.getOrgURL()
 	return suite
@@ -33,7 +33,7 @@ func NewSuite(firstPage string) *MeituriSuite {
 // GetPageURLs 接口方法，生成每页的URL
 func (suite *MeituriSuite) GetPageURLs(chPage chan string) {
 	defer close(chPage)
-	pageMax := findSuitePageMax(suite.firtHTMLContent)
+	pageMax := FindSuitePageMax(suite.firtHTMLContent)
 	// 没有分页，返回firstPage即可
 	for i := 1; i <= pageMax; i++ {
 		switch i {
@@ -58,7 +58,7 @@ func (suite *MeituriSuite) GetImgURLs(chPage <-chan string, chFailedImg <-chan s
 					fmt.Println("no more url")
 					return
 				}
-				content := getPageContent(url)
+				content := GetPageContent(url)
 				divContent := parseDivContent(content)
 				imgSrcs := parseImg(divContent)
 				// fmt.Println(imgSrcs)
@@ -83,7 +83,7 @@ func (suite *MeituriSuite) Download(chImg <-chan string, chFailedImg chan string
 }
 
 // 获取最大页码
-func findSuitePageMax(firstHTMLContent string) (pageMax int) {
+func FindSuitePageMax(firstHTMLContent string) (pageMax int) {
 	pageContentRegexp, _ := regexp.Compile(`html">([0-9]+)</a> <a class="a1`)
 	tmp := pageContentRegexp.FindString(firstHTMLContent)
 	intRe, _ := regexp.Compile(`[0-9]+`)
@@ -145,7 +145,7 @@ func parseImg(content string) []string {
 
 // 从URL获取文件内容
 func getImageContent(url string) []byte {
-	body := getURLContent(url)
+	body := GetURLContent(url)
 	return body
 }
 
@@ -156,17 +156,17 @@ func (suite *MeituriSuite) parseTitle() {
 }
 
 func (suite *MeituriSuite) getOrgURL() {
-	url := parseOrgURL(suite.firtHTMLContent)
+	url := ParseOrgURL(suite.firtHTMLContent)
 	suite.OrgURL = url
 }
 
-func parseOrgURL(content string) (url string) {
+func ParseOrgURL(content string) (url string) {
 	// println(content)
 	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)<a href="(.*?)" target="_blank">`) // 非贪婪
 	texts := re.FindStringSubmatch(content)
 	println("texts:", texts)
 	url = texts[2]
-	println("parseOrgURL:", url)
+	println("ParseOrgURL:", url)
 	return
 }
 
