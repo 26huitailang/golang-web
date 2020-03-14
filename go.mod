@@ -1,6 +1,6 @@
 module golang_web
 
-go 1.12
+go 1.14
 
 require (
 	github.com/26huitailang/golang-web v0.0.0-20190630092709-d026a9c3daf0
