@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+// todo: 下载人员标签下的所有 https://www.lanvshen.com/t/5500/
+
 var _ ISuiteOperator = (*MeituriSuite)(nil) // check implement interface
 
 // MeituriSuite struct 第一页的URL，suite的标题，第一个的HTML内容
@@ -36,6 +38,7 @@ type ImageInfo struct {
 	Path string `json:"path"`
 }
 
+// todo: 这个接口没有必要
 type IMTRParser interface {
 	PageContent(url string) string
 	ParseTitle(content string) (title string)
@@ -189,6 +192,8 @@ func getNameFromURL(url string) string {
 	return name
 }
 
+// todo: 在单独下载一个suite和theme时不能正常工作，原因是获取orgURL在没有的时候匹配错误
+// 但是parseOrgName尝试解决，两处title不一致
 func (s *MeituriSuite) getSuiteFolderPath() string {
 	if s.SuiteFolderPath != "" {
 		return s.SuiteFolderPath
