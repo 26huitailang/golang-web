@@ -1,7 +1,9 @@
 package downloadsuite
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/nsqio/go-nsq"
 	"log"
 	"os"
 	"path"
@@ -11,13 +13,13 @@ import (
 
 // Theme 对应meituri机构
 type Theme struct {
-	FirstURL         string
-	Name             string
-	Path             string
-	FirstPageContent string
-	MaxPage          int
-	Pages            chan string
-	Suites           chan *MeituriSuite
+	FirstURL         string             `json:"first_url"`
+	Name             string             `json:"name"`
+	Path             string             `json:"path"`
+	FirstPageContent string             `json:"first_page_content"`
+	MaxPage          int                `json:"max_page"`
+	Pages            chan string        `json:"-"`
+	Suites           chan *MeituriSuite `json:"-"`
 }
 
 func NewTheme(firstPage, folderToSave string) *Theme {
@@ -121,7 +123,23 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genSuites()
 	for s := range t.Suites {
 		suite := NewSuite(s)
-		suite.Operator.Download(true)
+		suite.Download()
 	}
 	log.Println("DownloadOneTheme finished!")
+}
+
+func (t *Theme) Produce(producer *nsq.Producer, topic string) error {
+	go t.genPages()
+	go t.genSuites()
+	for suite := range t.Suites {
+		data, err := json.Marshal(suite)
+		if err != nil {
+			return err
+		}
+		err = producer.Publish(topic, data)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

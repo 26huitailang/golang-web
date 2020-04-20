@@ -222,7 +222,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 		}()
 		operator := downloadsuite.NewMeituriSuite(url, config.Config.BasePath, downloadsuite.MeituriParser{})
 		suite := downloadsuite.NewSuite(operator)
-		suite.Operator.Download(false)
+		suite.Download()
 		// 重新加载进去
 		config.Config.InitTheme()
 	}()

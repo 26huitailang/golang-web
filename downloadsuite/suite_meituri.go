@@ -1,7 +1,10 @@
 package downloadsuite
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/nsqio/go-nsq"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -14,17 +17,17 @@ var _ ISuiteOperator = (*MeituriSuite)(nil) // check implement interface
 
 // MeituriSuite struct 第一页的URL，suite的标题，第一个的HTML内容
 type MeituriSuite struct {
-	firstPage       string
-	Title           string
-	firtHTMLContent string
-	OrgURL          string
-	baseFolderPath  string
-	suiteFolderPath string
-	PageMax         int
-	countFanOut     int
-	ChanPage        chan string
-	ChFailedImg     chan string // 下载失败img放回
-	Parser          IMTRParser
+	firstPage        string
+	Title            string
+	firstHTMLContent string      `json:"first_html_content"`
+	OrgURL           string      `json:"org_url"`
+	baseFolderPath   string      `json:"base_folder_path"`
+	suiteFolderPath  string      `json:"suite_folder_path"`
+	PageMax          int         `json:"page_max"`
+	countFanOut      int         `json:"-"`
+	ChanPage         chan string `json:"-"`
+	ChFailedImg      chan string `json:"-"` // 下载失败img放回
+	Parser           IMTRParser  `json:"-"`
 }
 
 type IMTRParser interface {
@@ -46,15 +49,16 @@ func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *Me
 		ChFailedImg:    make(chan string),
 		Parser:         parser,
 	}
-	suite.firtHTMLContent = suite.Parser.PageContent(firstPage)
-	suite.Title = suite.Parser.ParseTitle(suite.firtHTMLContent)
-	suite.OrgURL = suite.Parser.ParseOrgURL(suite.firtHTMLContent)
-	suite.PageMax = suite.Parser.FindSuitePageMax(suite.firtHTMLContent)
+	suite.firstHTMLContent = suite.Parser.PageContent(firstPage)
+	suite.Title = suite.Parser.ParseTitle(suite.firstHTMLContent)
+	suite.OrgURL = suite.Parser.ParseOrgURL(suite.firstHTMLContent)
+	suite.PageMax = suite.Parser.FindSuitePageMax(suite.firstHTMLContent)
+	suite.getSuiteFolderPath()
 	return suite
 }
 
-// Download 实现接口方法，下载chImg channel中的URL
-func (s *MeituriSuite) Download(isTheme bool) {
+// collectImages to collect every page images to a channel
+func (s *MeituriSuite) collectImages() <-chan string {
 	go s.GetPageURLs()
 
 	var chImgs []<-chan string
@@ -64,17 +68,16 @@ func (s *MeituriSuite) Download(isTheme bool) {
 	}
 	// 回收多个channel的结果
 	chImg := Merge(chImgs...)
+	return chImg
+}
+
+// Download 实现接口方法，下载chImg channel中的URL
+func (s *MeituriSuite) Download() {
+	chImg := s.collectImages()
 
 	// 文件夹检查
 	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
 	// todo: 如果有两个呢？是否只取第一个
-	if !isTheme {
-		themeURL := s.OrgURL
-		theme := NewTheme(themeURL, s.baseFolderPath)
-		s.suiteFolderPath = path.Join(s.baseFolderPath, theme.Name, s.Title)
-	} else {
-		s.suiteFolderPath = path.Join(s.baseFolderPath, s.Title)
-	}
 
 	isFolderExist := IsFileOrFolderExists(s.suiteFolderPath)
 	if !isFolderExist {
@@ -95,6 +98,32 @@ func (s *MeituriSuite) Download(isTheme bool) {
 	for ret := range finish {
 		fmt.Println("finish: ", ret)
 	}
+}
+
+// todo: 如果下面的方法是MeituriSuite使用并不能公共使用的话，写到struct下面
+// 下载，消费者
+func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
+	finish := make(chan string)
+
+	go func() {
+		defer close(finish)
+		for url := range inCh {
+			name := getNameFromURL(url)
+			name = path.Join(s.suiteFolderPath, name)
+			if IsFileOrFolderExists(name) {
+				fmt.Println("已存在: ", name)
+				continue
+			}
+			content := getImageContent(url)
+			if ioutil.WriteFile(name, content, 0644) == nil {
+				finish <- url
+			} else {
+				fmt.Println("failed: ", url, " 放入chFailedImg")
+				s.ChFailedImg <- url
+			}
+		}
+	}()
+	return finish
 }
 
 // GetPageURLs 接口方法，生成每页的URL
@@ -150,31 +179,52 @@ func (s *MeituriSuite) generatePageURL(page int) string {
 	return s.firstPage + pageStr + ".html"
 }
 
-// todo: 如果下面的方法是MeituriSuite使用并不能公共使用的话，写到struct下面
-// 下载，消费者
-func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
-	finish := make(chan string)
+func getNameFromURL(url string) string {
+	nameStrings := strings.Split(url, "/")
+	name := nameStrings[len(nameStrings)-1]
+	return name
+}
 
-	go func() {
-		defer close(finish)
-		for url := range inCh {
-			nameStrings := strings.Split(url, "/")
-			name := nameStrings[len(nameStrings)-1]
-			name = path.Join(s.suiteFolderPath, name)
-			if IsFileOrFolderExists(name) {
-				fmt.Println("已存在: ", name)
-				continue
-			}
-			content := getImageContent(url)
-			if ioutil.WriteFile(name, content, 0644) == nil {
-				finish <- url
-			} else {
-				fmt.Println("failed: ", url, " 放入chFailedImg")
-				s.ChFailedImg <- url
-			}
+func (s *MeituriSuite) getSuiteFolderPath() string {
+	if s.suiteFolderPath != "" {
+		return s.suiteFolderPath
+	}
+
+	themeURL := s.OrgURL
+	theme := NewTheme(themeURL, s.baseFolderPath)
+	isIncluded := strings.Contains(s.baseFolderPath, theme.Name)
+	if isIncluded {
+		s.suiteFolderPath = path.Join(s.baseFolderPath, s.Title)
+	} else {
+		s.suiteFolderPath = path.Join(s.baseFolderPath, theme.Name, s.Title)
+	}
+	return s.suiteFolderPath
+}
+
+// Produce to produce img info to nsq
+func (s *MeituriSuite) Produce(producer *nsq.Producer, topic string) error {
+	chImages := s.collectImages()
+	for imgURL := range chImages {
+		name := getNameFromURL(imgURL)
+		img := struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+			Path string `json:"path"`
+		}{
+			name,
+			imgURL,
+			s.suiteFolderPath,
 		}
-	}()
-	return finish
+		data, err := json.Marshal(img)
+		if err != nil {
+			return errors.Errorf("marshal image error: %s", err.Error())
+		}
+		err = producer.Publish(topic, data)
+		if err != nil {
+			return errors.Errorf("suite produce image error: %s", err.Error())
+		}
+	}
+	return nil
 }
 
 // 解析div class="content" 部分
