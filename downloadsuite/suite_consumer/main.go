@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/nsqio/go-nsq"
 	"golang_web/downloadsuite"
 	"log"
@@ -8,9 +9,11 @@ import (
 
 type myMessageHandler struct{}
 
-func processMessage(body []byte) error {
+func processMessage(body []byte) (*downloadsuite.SuiteInfo, error) {
 	log.Printf("%s", body)
-	return nil
+	mtr := new(downloadsuite.SuiteInfo)
+	err := json.Unmarshal(body, mtr)
+	return mtr, err
 }
 
 // HandleMessage implements the Handler interface.
@@ -19,13 +22,28 @@ func (h *myMessageHandler) HandleMessage(m *nsq.Message) error {
 		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
 		return nil
 	}
-	err := processMessage(m.Body)
+	suiteInfo, err := processMessage(m.Body)
+	if err != nil {
+		log.Fatalf("unmarshal error: %s", err.Error())
+	}
 
 	// todo: 消息应该收到mtr suite的初始化消息
-	downloadsuite.NewMeituriSuite(firstPage, folderPath)
+	mtr := downloadsuite.NewMeituriSuite(suiteInfo.FirstPage, suiteInfo.FolderPath, downloadsuite.MeituriParser{})
+	cfg := nsq.NewConfig()
+	nsqAddr := "127.0.0.1:4150"
+	producer, err := nsq.NewProducer(nsqAddr, cfg)
+	if err != nil {
+		log.Printf("produce error: %s", err.Error())
+		return err
+	}
 
-	// Returning a non-nil error will automatically send a REQ command to NSQ to re-queue the message.
-	return err
+	topic := "mtr_image"
+	if err = mtr.Produce(producer, topic); err != nil {
+		log.Printf("produce error: %s", err.Error())
+		return err
+	}
+
+	return nil
 }
 
 func consume() {

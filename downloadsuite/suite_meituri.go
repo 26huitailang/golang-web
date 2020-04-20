@@ -17,17 +17,23 @@ var _ ISuiteOperator = (*MeituriSuite)(nil) // check implement interface
 
 // MeituriSuite struct 第一页的URL，suite的标题，第一个的HTML内容
 type MeituriSuite struct {
-	firstPage        string
-	Title            string
-	firstHTMLContent string      `json:"first_html_content"`
+	BaseFolderPath   string      `json:"base_folder_path"`
+	FirstPage        string      `json:"first_page"`
+	FirstHTMLContent string      `json:"first_html_content"`
 	OrgURL           string      `json:"org_url"`
-	baseFolderPath   string      `json:"base_folder_path"`
-	suiteFolderPath  string      `json:"suite_folder_path"`
+	Title            string      `json:"title"`
+	SuiteFolderPath  string      `json:"suite_folder_path"`
 	PageMax          int         `json:"page_max"`
 	countFanOut      int         `json:"-"`
 	ChanPage         chan string `json:"-"`
 	ChFailedImg      chan string `json:"-"` // 下载失败img放回
 	Parser           IMTRParser  `json:"-"`
+}
+
+type ImageInfo struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Path string `json:"path"`
 }
 
 type IMTRParser interface {
@@ -42,17 +48,17 @@ type MeituriParser struct{}
 // NewMeituriSuite 初始化一个MeituriSuite结构
 func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *MeituriSuite {
 	suite := &MeituriSuite{
-		firstPage:      firstPage,
+		FirstPage:      firstPage,
 		countFanOut:    5,
-		baseFolderPath: folderPath,
+		BaseFolderPath: folderPath,
 		ChanPage:       make(chan string),
 		ChFailedImg:    make(chan string),
 		Parser:         parser,
 	}
-	suite.firstHTMLContent = suite.Parser.PageContent(firstPage)
-	suite.Title = suite.Parser.ParseTitle(suite.firstHTMLContent)
-	suite.OrgURL = suite.Parser.ParseOrgURL(suite.firstHTMLContent)
-	suite.PageMax = suite.Parser.FindSuitePageMax(suite.firstHTMLContent)
+	suite.FirstHTMLContent = suite.Parser.PageContent(firstPage)
+	suite.Title = suite.Parser.ParseTitle(suite.FirstHTMLContent)
+	suite.OrgURL = suite.Parser.ParseOrgURL(suite.FirstHTMLContent)
+	suite.PageMax = suite.Parser.FindSuitePageMax(suite.FirstHTMLContent)
 	suite.getSuiteFolderPath()
 	return suite
 }
@@ -77,12 +83,10 @@ func (s *MeituriSuite) Download() {
 
 	// 文件夹检查
 	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
-	// todo: 如果有两个呢？是否只取第一个
-
-	isFolderExist := IsFileOrFolderExists(s.suiteFolderPath)
+	isFolderExist := IsFileOrFolderExists(s.SuiteFolderPath)
 	if !isFolderExist {
-		fmt.Println("创建文件夹: ", s.suiteFolderPath)
-		err := os.MkdirAll(s.suiteFolderPath, os.ModePerm)
+		fmt.Println("创建文件夹: ", s.SuiteFolderPath)
+		err := os.MkdirAll(s.SuiteFolderPath, os.ModePerm)
 		CheckError(err)
 	}
 
@@ -109,7 +113,7 @@ func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
 		defer close(finish)
 		for url := range inCh {
 			name := getNameFromURL(url)
-			name = path.Join(s.suiteFolderPath, name)
+			name = path.Join(s.SuiteFolderPath, name)
 			if IsFileOrFolderExists(name) {
 				fmt.Println("已存在: ", name)
 				continue
@@ -137,7 +141,7 @@ func getPageURLs(s *MeituriSuite) {
 	for i := 1; i <= s.PageMax; i++ {
 		switch i {
 		case 1: // 第一页特殊
-			s.ChanPage <- s.firstPage
+			s.ChanPage <- s.FirstPage
 		default:
 			pageURL := s.generatePageURL(i)
 			s.ChanPage <- pageURL
@@ -176,7 +180,7 @@ func (s *MeituriSuite) GetImgURLs() <-chan string {
 func (s *MeituriSuite) generatePageURL(page int) string {
 	// https://www.meituri.com/a/26718/2.html
 	pageStr := strconv.Itoa(page)
-	return s.firstPage + pageStr + ".html"
+	return s.FirstPage + pageStr + ".html"
 }
 
 func getNameFromURL(url string) string {
@@ -186,19 +190,21 @@ func getNameFromURL(url string) string {
 }
 
 func (s *MeituriSuite) getSuiteFolderPath() string {
-	if s.suiteFolderPath != "" {
-		return s.suiteFolderPath
+	if s.SuiteFolderPath != "" {
+		return s.SuiteFolderPath
 	}
 
 	themeURL := s.OrgURL
-	theme := NewTheme(themeURL, s.baseFolderPath)
-	isIncluded := strings.Contains(s.baseFolderPath, theme.Name)
+	theme := NewTheme(themeURL, s.BaseFolderPath)
+	orgName := theme.Name
+	//orgName := parseOrgName(s.FirstHTMLContent)
+	isIncluded := strings.Contains(s.BaseFolderPath, orgName)
 	if isIncluded {
-		s.suiteFolderPath = path.Join(s.baseFolderPath, s.Title)
+		s.SuiteFolderPath = path.Join(s.BaseFolderPath, s.Title)
 	} else {
-		s.suiteFolderPath = path.Join(s.baseFolderPath, theme.Name, s.Title)
+		s.SuiteFolderPath = path.Join(s.BaseFolderPath, orgName, s.Title)
 	}
-	return s.suiteFolderPath
+	return s.SuiteFolderPath
 }
 
 // Produce to produce img info to nsq
@@ -206,14 +212,10 @@ func (s *MeituriSuite) Produce(producer *nsq.Producer, topic string) error {
 	chImages := s.collectImages()
 	for imgURL := range chImages {
 		name := getNameFromURL(imgURL)
-		img := struct {
-			Name string `json:"name"`
-			URL  string `json:"url"`
-			Path string `json:"path"`
-		}{
+		img := &ImageInfo{
 			name,
 			imgURL,
-			s.suiteFolderPath,
+			s.SuiteFolderPath,
 		}
 		data, err := json.Marshal(img)
 		if err != nil {
@@ -295,4 +297,30 @@ func parseOrgURL(content string) string {
 	URL := texts[2]
 	//println("ParseOrgURL:", URL)
 	return URL
+}
+
+func parseOrgName(content string) string {
+	re := regexp.MustCompile(`<p>拍摄机构：([\s\S]*?)</p>`)
+	texts := re.FindStringSubmatch(content)
+	title := texts[1]
+
+	// 标题无链接
+	/*
+		<p>拍摄机构：SIW斯文传媒</p>
+	*/
+	if !strings.Contains(title, "</a>") {
+		return title
+	}
+
+	// 有链接的情况，取第一个
+	/*
+		<p>拍摄机构：
+			<a href="https://www.lanvshen.com/x/12/" target="_blank">异思趣向</a>
+			<a href="https://www.lanvshen.com/x/13/" target="_blank">丝足便当</a>
+		</p>
+	*/
+	re = regexp.MustCompile(`<a href="(.*?)" target="_blank">(.*?)</a>`) // 非贪婪
+	texts = re.FindStringSubmatch(content)
+	title = texts[2]
+	return title
 }

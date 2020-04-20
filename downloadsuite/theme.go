@@ -11,15 +11,20 @@ import (
 	"strconv"
 )
 
+type SuiteInfo struct {
+	FirstPage  string `json:"first_page"`
+	FolderPath string `json:"folder_path"`
+}
+
 // Theme 对应meituri机构
 type Theme struct {
-	FirstURL         string             `json:"first_url"`
-	Name             string             `json:"name"`
-	Path             string             `json:"path"`
-	FirstPageContent string             `json:"first_page_content"`
-	MaxPage          int                `json:"max_page"`
-	Pages            chan string        `json:"-"`
-	Suites           chan *MeituriSuite `json:"-"`
+	FirstURL         string          `json:"first_url"`
+	Name             string          `json:"name"`
+	Path             string          `json:"path"`
+	FirstPageContent string          `json:"first_page_content"`
+	MaxPage          int             `json:"max_page"`
+	Pages            chan string     `json:"-"`
+	Suites           chan *SuiteInfo `json:"-"`
 }
 
 func NewTheme(firstPage, folderToSave string) *Theme {
@@ -28,7 +33,7 @@ func NewTheme(firstPage, folderToSave string) *Theme {
 	t := &Theme{
 		FirstURL: firstPage,
 		Pages:    make(chan string),
-		Suites:   make(chan *MeituriSuite),
+		Suites:   make(chan *SuiteInfo),
 	}
 	t.init(folderToSave)
 	return t
@@ -107,7 +112,7 @@ func (t *Theme) genSuites() {
 		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
-			suite := NewMeituriSuite(suiteURL, t.Path, MeituriParser{})
+			suite := &SuiteInfo{FirstPage: suiteURL, FolderPath: t.Path}
 			t.Suites <- suite
 			log.Println(suiteURL)
 		}
@@ -122,7 +127,7 @@ func (t *Theme) DownloadOneTheme() {
 	go t.genPages()
 	go t.genSuites()
 	for s := range t.Suites {
-		suite := NewSuite(s)
+		suite := NewMeituriSuite(s.FirstPage, s.FolderPath, MeituriParser{})
 		suite.Download()
 	}
 	log.Println("DownloadOneTheme finished!")
@@ -131,8 +136,8 @@ func (t *Theme) DownloadOneTheme() {
 func (t *Theme) Produce(producer *nsq.Producer, topic string) error {
 	go t.genPages()
 	go t.genSuites()
-	for suite := range t.Suites {
-		data, err := json.Marshal(suite)
+	for suiteInfo := range t.Suites {
+		data, err := json.Marshal(suiteInfo)
 		if err != nil {
 			return err
 		}

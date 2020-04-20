@@ -1,17 +1,46 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/nsqio/go-nsq"
+	"golang_web/downloadsuite"
+	"io/ioutil"
 	"log"
+	"os"
+	"path"
 )
 
-type Image struct {
-	URL string
-}
 type myMessageHandler struct{}
 
 func processMessage(body []byte) error {
-	log.Printf("%s", body)
+	imageInfo := new(downloadsuite.ImageInfo)
+	if err := json.Unmarshal(body, imageInfo); err != nil {
+		return err
+	}
+
+	isFolderExist := downloadsuite.IsFileOrFolderExists(imageInfo.Path)
+	if !isFolderExist {
+		fmt.Println("创建文件夹: ", imageInfo.Path)
+		err := os.MkdirAll(imageInfo.Path, os.ModePerm)
+		if err != nil {
+			log.Printf("%s", err)
+			return err
+		}
+	}
+
+	name := path.Join(imageInfo.Path, imageInfo.Name)
+	if downloadsuite.IsFileOrFolderExists(name) {
+		fmt.Println("已存在: ", name)
+		return nil
+	}
+	content := downloadsuite.GetURLContent(imageInfo.URL)
+	if err := ioutil.WriteFile(name, content, 0644); err != nil {
+		fmt.Println("failed: ", imageInfo.URL)
+		return err
+	}
+	log.Printf("donwloaded successfully: %s %s", imageInfo.Name, imageInfo.URL)
+
 	return nil
 }
 
@@ -29,7 +58,7 @@ func (h *myMessageHandler) HandleMessage(m *nsq.Message) error {
 
 func consume() {
 	config := nsq.NewConfig()
-	consumer, err := nsq.NewConsumer("mtr_theme", "channel_a", config)
+	consumer, err := nsq.NewConsumer("mtr_image", "channel", config)
 	if err != nil {
 		log.Fatal(err)
 	}

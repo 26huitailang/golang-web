@@ -7,7 +7,7 @@ import (
 )
 
 func produce() {
-	theme := downloadsuite.NewTheme("https://www.lanvshen.com/x/98/", "~/Downloads/mtr")
+	theme := downloadsuite.NewTheme("https://www.lanvshen.com/x/98/", "/Users/26huitailang/Downloads/mtr")
 	cfg := nsq.NewConfig()
 	nsqAddr := "127.0.0.1:4150"
 	producer, err := nsq.NewProducer(nsqAddr, cfg)
