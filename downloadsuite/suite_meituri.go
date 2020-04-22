@@ -39,7 +39,7 @@ type ImageInfo struct {
 	Path string `json:"path"`
 }
 
-// todo: 这个接口没有必要
+// 需要的操作的接口，方便测试时stub
 type IMTRParser interface {
 	PageContent(url string) string
 	ParseTitle(content string) (title string)

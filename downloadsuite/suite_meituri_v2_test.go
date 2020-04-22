@@ -18,7 +18,7 @@ func TestMeituriSuite(t *testing.T) {
 
 	t.Run("获取拍摄机构URL", func(t *testing.T) {
 		operator := downloadsuite.NewMeituriSuite("mtr_suite.html", "/tmp", &downloadsuite.StubParser{})
-		assert.Equal(t, "https://www.meituri.com/x/82/", operator.OrgURL)
+		assert.Equal(t, "森萝财团", operator.GetOrgName(operator.FirstHTMLContent))
 	})
 
 	t.Run("获取suite最大页码", func(t *testing.T) {
