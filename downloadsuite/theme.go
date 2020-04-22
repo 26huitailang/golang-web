@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/nsqio/go-nsq"
 	"log"
-	"os"
-	"path"
 	"regexp"
 	"strconv"
 )
@@ -19,8 +17,7 @@ type SuiteInfo struct {
 // Theme 对应meituri机构
 type Theme struct {
 	FirstURL         string          `json:"first_url"`
-	Name             string          `json:"name"`
-	Path             string          `json:"path"`
+	FolderPath       string          `json:"folder_path"`
 	FirstPageContent string          `json:"first_page_content"`
 	MaxPage          int             `json:"max_page"`
 	Pages            chan string     `json:"-"`
@@ -41,11 +38,11 @@ func NewTheme(firstPage, folderToSave string) *Theme {
 
 func (t *Theme) init(folderToSave string) {
 	t.FirstPageContent = GetPageContent(t.FirstURL)
-	t.parseName()
-	t.Path = path.Join(folderToSave, t.Name)
-	if ok := IsFileOrFolderExists(t.Path); !ok {
-		os.Mkdir(t.Path, 0700)
-	}
+	//t.parseName()
+	t.FolderPath = folderToSave
+	//if ok := IsFileOrFolderExists(t.Path); !ok {
+	//	os.Mkdir(t.Path, 0700)
+	//}
 	t.getMaxPage()
 }
 
@@ -66,14 +63,14 @@ func parseThemeMaxPage(FirstPageContent string) (pageMax int) {
 	return
 }
 
-func (t *Theme) parseName() {
-	re := regexp.MustCompile(`<h1>(.+?)</h1>`)
-	name := re.FindStringSubmatch(t.FirstPageContent)
-	t.Name = name[1]
-}
+//func (t *Theme) parseName() {
+//	re := regexp.MustCompile(`<h1>(.+?)</h1>`)
+//	name := re.FindStringSubmatch(t.FirstPageContent)
+//	t.Name = name[1]
+//}
 
 func (t *Theme) String() string {
-	return fmt.Sprintf("Name: %s | Page: %d", t.Name, t.MaxPage)
+	return fmt.Sprintf("Name: %s | Page: %d", t.FirstURL, t.MaxPage)
 }
 
 func (t *Theme) genPages() {
@@ -112,7 +109,7 @@ func (t *Theme) genSuites() {
 		pageContent := GetPageContent(pageURL)
 		suiteURLs := parseSuites(pageContent)
 		for _, suiteURL := range suiteURLs {
-			suite := &SuiteInfo{FirstPage: suiteURL, FolderPath: t.Path}
+			suite := &SuiteInfo{FirstPage: suiteURL, FolderPath: t.FolderPath}
 			t.Suites <- suite
 			log.Println(suiteURL)
 		}

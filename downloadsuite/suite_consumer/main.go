@@ -27,7 +27,7 @@ func (h *myMessageHandler) HandleMessage(m *nsq.Message) error {
 		log.Fatalf("unmarshal error: %s", err.Error())
 	}
 
-	// todo: 消息应该收到mtr suite的初始化消息
+	// 消息应该收到mtr suite的初始化消息
 	mtr := downloadsuite.NewMeituriSuite(suiteInfo.FirstPage, suiteInfo.FolderPath, downloadsuite.MeituriParser{})
 	cfg := nsq.NewConfig()
 	nsqAddr := "127.0.0.1:4150"

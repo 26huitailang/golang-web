@@ -1,13 +1,23 @@
 package main
 
 import (
+	"flag"
 	"github.com/nsqio/go-nsq"
 	"golang_web/downloadsuite"
 	"log"
 )
 
-func produce() {
-	theme := downloadsuite.NewTheme("https://www.lanvshen.com/x/98/", "/Users/26huitailang/Downloads/mtr")
+var URL string
+var folder string
+
+func init() {
+	// https://www.lanvshen.com/x/86/
+	flag.StringVar(&URL, "url", "", "Theme首页")
+	flag.StringVar(&folder, "folder", "tmp", "保存的suite路径")
+}
+
+func produce(url, folderSave string) {
+	theme := downloadsuite.NewTheme(url, folderSave)
 	cfg := nsq.NewConfig()
 	nsqAddr := "127.0.0.1:4150"
 	producer, err := nsq.NewProducer(nsqAddr, cfg)
@@ -22,5 +32,6 @@ func produce() {
 }
 
 func main() {
-	produce()
+	flag.Parse()
+	produce(URL, folder)
 }

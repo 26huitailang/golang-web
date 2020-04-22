@@ -6,6 +6,7 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/pkg/errors"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"regexp"
@@ -22,7 +23,7 @@ type MeituriSuite struct {
 	BaseFolderPath   string      `json:"base_folder_path"`
 	FirstPage        string      `json:"first_page"`
 	FirstHTMLContent string      `json:"first_html_content"`
-	OrgURL           string      `json:"org_url"`
+	OrgName          string      `json:"org_name"`
 	Title            string      `json:"title"`
 	SuiteFolderPath  string      `json:"suite_folder_path"`
 	PageMax          int         `json:"page_max"`
@@ -60,7 +61,6 @@ func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *Me
 	}
 	suite.FirstHTMLContent = suite.Parser.PageContent(firstPage)
 	suite.Title = suite.Parser.ParseTitle(suite.FirstHTMLContent)
-	suite.OrgURL = suite.Parser.ParseOrgURL(suite.FirstHTMLContent)
 	suite.PageMax = suite.Parser.FindSuitePageMax(suite.FirstHTMLContent)
 	suite.getSuiteFolderPath()
 	return suite
@@ -107,8 +107,7 @@ func (s *MeituriSuite) Download() {
 	}
 }
 
-// todo: 如果下面的方法是MeituriSuite使用并不能公共使用的话，写到struct下面
-// 下载，消费者
+// 下载
 func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
 	finish := make(chan string)
 
@@ -192,24 +191,23 @@ func getNameFromURL(url string) string {
 	return name
 }
 
-// todo: 在单独下载一个suite和theme时不能正常工作，原因是获取orgURL在没有的时候匹配错误
-// 但是parseOrgName尝试解决，两处title不一致
+// 尝试从suite页获取机构名解决theme和suite使用不一致的问题
 func (s *MeituriSuite) getSuiteFolderPath() string {
 	if s.SuiteFolderPath != "" {
 		return s.SuiteFolderPath
 	}
 
-	themeURL := s.OrgURL
-	theme := NewTheme(themeURL, s.BaseFolderPath)
-	orgName := theme.Name
-	//orgName := parseOrgName(s.FirstHTMLContent)
-	isIncluded := strings.Contains(s.BaseFolderPath, orgName)
-	if isIncluded {
-		s.SuiteFolderPath = path.Join(s.BaseFolderPath, s.Title)
-	} else {
-		s.SuiteFolderPath = path.Join(s.BaseFolderPath, orgName, s.Title)
-	}
+	// theme 处理时不提取name，统一在这里获取
+	orgName := s.GetOrgName(s.FirstHTMLContent)
+	s.SuiteFolderPath = path.Join(s.BaseFolderPath, orgName, s.Title)
 	return s.SuiteFolderPath
+}
+
+func (s *MeituriSuite) GetOrgName(content string) string {
+	if s.OrgName != "" {
+		return s.OrgName
+	}
+	return parseOrgName(content)
 }
 
 // Produce to produce img info to nsq
@@ -314,6 +312,9 @@ func parseOrgName(content string) string {
 		<p>拍摄机构：SIW斯文传媒</p>
 	*/
 	if !strings.Contains(title, "</a>") {
+		title = strings.Trim(title, "\n")
+		title = strings.TrimSpace(title)
+		log.Println("title does not include </a>:", title)
 		return title
 	}
 
@@ -327,5 +328,6 @@ func parseOrgName(content string) string {
 	re = regexp.MustCompile(`<a href="(.*?)" target="_blank">(.*?)</a>`) // 非贪婪
 	texts = re.FindStringSubmatch(content)
 	title = texts[2]
+	log.Println("title includes </a>:", title)
 	return title
 }
