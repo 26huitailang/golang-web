@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"os"
 	"os/exec"
 	"strconv"
 	"syscall"
@@ -195,7 +196,11 @@ func startChild1() {
 	cmd := exec.Command("/bin/sh", "-c", "sleep 1000")
 	time.AfterFunc(10*time.Second, func() {
 		fmt.Println("PID1=", cmd.Process.Pid)
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGQUIT)
+		p, err := os.FindProcess(cmd.Process.Pid)
+		if err != nil {
+			log.Error(err)
+		}
+		p.Signal(syscall.SIGQUIT)
 		fmt.Println("killed")
 	})
 	fmt.Println("begin run")

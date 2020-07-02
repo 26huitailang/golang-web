@@ -3,7 +3,6 @@ module golang_web
 go 1.14
 
 require (
-	github.com/26huitailang/golang-web v0.0.0-20190630092709-d026a9c3daf0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/jinzhu/gorm v1.9.10
 	github.com/labstack/echo v3.3.10+incompatible
