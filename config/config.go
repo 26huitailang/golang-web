@@ -32,7 +32,7 @@ func init() {
 	flag.Parse()
 	Config = &Configuration{}
 	Config.initConfiguration()
-	fmt.Printf("COFIG: %v", Config)
+	fmt.Println("CONFIG:", Config)
 }
 
 // 加载默认配置config.json

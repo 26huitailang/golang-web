@@ -2,8 +2,10 @@
 package main
 
 import (
+	rice "github.com/GeertJohan/go.rice"
 	"html/template"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -66,18 +68,40 @@ func ReloadTemplates() {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
-
-	layouts, err := filepath.Glob("templates/layouts/*.html")
+	templateBox, err := rice.FindBox("templates")
 	if err != nil {
-		err = errors.Wrap(err, "template")
 		log.Fatal(err)
 	}
+	log.Debug("templateBox ", templateBox.Name())
 
-	pages, err := filepath.Glob("templates/pages/*.html")
-	if err != nil {
-		err = errors.Wrap(err, "template")
-		log.Fatal(err)
-	}
+	layouts := make([]string, 0)
+	pages := make([]string, 0)
+	templateBox.Walk("", func(path string, info os.FileInfo, err error) error {
+		log.Info(path)
+		if !info.IsDir() {
+			if strings.Contains(path, "layouts") {
+				layouts = append(layouts, path)
+			} else if strings.Contains(path, "pages") {
+				pages = append(pages, path)
+			}
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	log.Info("layouts ", layouts)
+	//layouts, err := filepath.Glob("templates/layouts/*.html")
+	//if err != nil {
+	//	err = errors.Wrap(err, "template")
+	//	log.Fatal(err)
+	//}
+	//
+	//pages, err := filepath.Glob("templates/pages/*.html")
+	//if err != nil {
+	//	err = errors.Wrap(err, "template")
+	//	log.Fatal(err)
+	//}
 
 	globalShared, err := filepath.Glob("views/shared/*.html")
 	if err != nil {
@@ -91,14 +115,25 @@ func ReloadTemplates() {
 	for _, layout := range layouts {
 		for _, page := range pages {
 			files := append(globalShared, layout, page)
+			log.Info("files", files)
 			// todo - crawl_folder func call if include is folder
 			layoutBase := filepath.Base(layout)
 			layoutShort := layoutBase[0:strings.LastIndex(layoutBase, ".")]
 			pageBase := filepath.Base(page)
 			pageShort := pageBase[0:strings.LastIndex(pageBase, ".")]
 			//pageShort := pageBase
-			templates[layoutShort+":"+pageShort] = template.Must(template.New(pageShort).ParseFiles(files...))
+			content := ""
+			for _, file := range files {
+				file = strings.Replace(file, "\\", "/", -1)
+				log.Warn("====", file)
+				tmp, err := templateBox.String(file)
+				if err != nil {
+					log.Fatal(err)
+				}
+				content = content + tmp
+			}
+			templates[layoutShort+":"+pageShort] = template.Must(template.New(pageShort).Parse(content))
 		}
 	}
-	log.Debugf("%v", templates)
+	log.Debugf("templates %v", templates)
 }

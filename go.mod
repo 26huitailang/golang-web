@@ -3,6 +3,7 @@ module golang_web
 go 1.14
 
 require (
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/jinzhu/gorm v1.9.10
 	github.com/labstack/echo v3.3.10+incompatible
