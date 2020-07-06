@@ -1,15 +1,12 @@
 # golang-web
 
+## todo
+
+- [ ] config 必须依赖一个文件启动，没有默认配置
+
 ## docker
 
 - 测试阿里云的触发
-
-## todo
-
-- [ ] 403 404
-- [ ] login
-- [x] 添加sqlite，初始化的数据放入sqlite，支持一些数据库的排序操作
-- [x] sql使用Gorm来支持
 
 ## profiling
 

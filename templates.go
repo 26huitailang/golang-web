@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//go:generate rice embed-go
 // folder structure
 
 // views/layouts/base.hbs
@@ -70,7 +71,7 @@ func ReloadTemplates() {
 	}
 	templateBox, err := rice.FindBox("templates")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("find box: ", err)
 	}
 	log.Debug("templateBox ", templateBox.Name())
 

@@ -12,11 +12,14 @@ BINARY_ARM=$(BINARY_LINUX)_arm
 PROFILE=profile
 COVERPROFILE=coverprofile
 LOGFILE=main.log
-REMOTEIP=192.168.8.217
+REMOTEIP=pi
 REMOTEPATH=pi@$(REMOTEIP):/home/pi/go/golang-web/
+DOCKERTAG=golang:1.13-stretch
 
-all: test build
-build:
+generate:
+	$(GOCMD) generate
+all: generate test build
+build: generate
 	$(GOBUILD) -o $(BINARY_NAME) -v
 test:
 	$(GOTEST) -v ./...
@@ -37,16 +40,17 @@ cover:
 	$(GOTOOL) cover -html $(COVERPROFILE)
 
 # Cross compilation
-build-linux:
+build-linux: generate
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v
-build-arm:
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm $(GOBUILD) -o $(BINARY_ARM) -v
+build-arm: generate
+	$(GOBUILD) -o $(BINARY_ARM) -v main.go constants.go templates.go rice-box.go
 
-# docker
+# docker 不要升级到1.14 依赖GLIBC 2.28 树莓派没有，可以试试stretch版本
+# docker run --rm -it golang:1.14 ldd --version
 docker-build: # 准备docker用于go build的环境
-	docker build -t golang:1.12 .
+	docker build -t $(DOCKERTAG) .
 docker-build-arm:
-	docker run --rm -it -v "$(GOPATH)":/go -w /go/src/github.com/26huitailang/golang-web -e CGO_ENABLED=1 -e GOOS=linux -e GOARCH=arm -e CC=arm-linux-gnueabi-gcc golang:1.12 go build -o $(BINARY_ARM) -v
+	docker run --rm -it -v "$(PWD)":/go/src -w /go/src -e CGO_ENABLED=1 -e GOOS=linux -e GOARCH=arm -e CC=arm-linux-gnueabi-gcc $(DOCKERTAG) make build-arm
 
 # documentation
 doc:
@@ -64,13 +68,13 @@ scp:
 	scp -r templates $(REMOTEPATH)
 
 remote-stop:
-	ssh pi@192.168.8.217 -p 22 "\
+	ssh pi@pi -p 22 "\
 	sudo supervisorctl stop golang-web && \
 	exit"
 	echo done!
 
 remote-start:
-	ssh pi@192.168.8.217 -p 22 "\
+	ssh pi@pi -p 22 "\
 	sudo supervisorctl start golang-web && \
 	exit"
 	echo done!
