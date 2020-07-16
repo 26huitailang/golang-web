@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"golang_web/constants"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -30,33 +31,23 @@ type Configuration struct {
 
 func init() {
 	flag.Parse()
-	Config = &Configuration{}
+	pwd, _ := os.Getwd()
+	Config = &Configuration{
+		pwd,
+		"0.0.0.0",
+		constants.Development,
+		":8080",
+	}
 	Config.initConfiguration()
 	fmt.Println("CONFIG:", Config)
 }
 
-// 加载默认配置config.json
-func (conf *Configuration) initConfiguration() {
-	jsonFile, err := os.Open("config.json")
-	if err != nil {
-		log.Fatal("Error opening JSON file:", err)
-	}
-	defer jsonFile.Close()
-	jsonData, err := ioutil.ReadAll(jsonFile)
-	if err != nil {
-		log.Fatal("Error reading JSON data:", err)
-	}
-	json.Unmarshal(jsonData, &conf)
-	conf.initCustomConfig()
-	log.Println("config:", conf)
-}
-
 // 加载自定义配置，覆盖默认配置
-func (conf *Configuration) initCustomConfig() {
+func (conf *Configuration) initConfiguration() {
 	// 文件是否存在
-	file, err := os.Open("config_custom.json")
+	file, err := os.Open("config_demo.json")
 	if err != nil {
-		log.Warn("config_custom.json not existed!\nUse default config.json\n")
+		log.Warn("config_custom.json not existed!\nUse default config_demo.json\n")
 		return
 	}
 	defer file.Close()
@@ -78,9 +69,11 @@ func (conf *Configuration) initCustomConfig() {
 		tag := fieldInfo.Tag.Get("json")
 		if value, ok := customMap[tag]; ok {
 			log.Printf("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
-			v.FieldByName(fieldInfo.Name).Set(reflect.ValueOf(value))
+			valueSet := reflect.ValueOf(value)
+			v.FieldByName(fieldInfo.Name).Set(valueSet.Convert(fieldInfo.Type))
 		}
 	}
+	log.Println("custom config:", conf)
 }
 
 type themeInfo struct {

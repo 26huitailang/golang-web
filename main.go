@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang_web/constants"
 
 	"golang_web/config"
 	"golang_web/database"
@@ -101,7 +102,7 @@ func main() {
 		}
 	})
 
-	if config.Config.DeployLevel >= Development {
+	if config.Config.DeployLevel <= constants.Development {
 		e.Use(middleware.Logger())
 	} else {
 		logfile, _ := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
