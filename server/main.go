@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"golang_web/constants"
-
 	"golang_web/config"
+	"golang_web/constants"
 	"golang_web/database"
 	"golang_web/views"
 

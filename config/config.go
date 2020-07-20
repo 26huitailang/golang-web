@@ -36,7 +36,7 @@ func init() {
 		pwd,
 		"0.0.0.0",
 		constants.Development,
-		":8080",
+		":8000",
 	}
 	Config.initConfiguration()
 	fmt.Println("CONFIG:", Config)

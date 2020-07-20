@@ -2,7 +2,10 @@
 
 ## todo
 
-- [ ] config 必须依赖一个文件启动，没有默认配置
+- [ ] 使用cobra 作为命令入口
+- [ ] 整理文件组织
+- [ ] 使用 traefik
+- [ ] docker swarm
 
 ## docker
 

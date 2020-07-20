@@ -69,7 +69,7 @@ func ReloadTemplates() {
 	if templates == nil {
 		templates = make(map[string]*template.Template)
 	}
-	templateBox, err := rice.FindBox("templates")
+	templateBox, err := rice.FindBox("../templates")
 	if err != nil {
 		log.Fatal("find box: ", err)
 	}

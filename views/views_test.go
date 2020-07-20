@@ -1,8 +1,8 @@
-package main
+package views
 
 import (
 	"golang_web/models"
-	"golang_web/views"
+	main2 "golang_web/server"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,12 +14,12 @@ import (
 func TestThemesHandle(t *testing.T) {
 	// Setup
 	e := echo.New()
-	e.Renderer = &Template{}
+	e.Renderer = &main2.Template{}
 	req := httptest.NewRequest(http.MethodGet, "/themes", nil)
 	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	h := &views.Handler{Store: &StubStore{
+	h := &Handler{Store: &StubStore{
 		themes: []models.Theme{
 			{
 				Name: "Hey Ha",
