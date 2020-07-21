@@ -3,6 +3,8 @@ package views
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
+	"golang_web/database"
+	"golang_web/utils"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,13 +19,10 @@ import (
 	"github.com/labstack/echo"
 
 	"golang_web/config"
-	"golang_web/database"
 	"golang_web/downloadsuite"
 
 	log "github.com/sirupsen/logrus"
 )
-
-var DB = database.New(config.Config.DataPath)
 
 type DataStore interface {
 	GetThemes() []models.Theme
@@ -39,7 +38,7 @@ type DatabaseStore struct {
 
 func (db *DatabaseStore) GetThemes() []models.Theme {
 	var themes []models.Theme
-	DB.Order("name").Find(&themes)
+	db.DB.Order("name").Find(&themes)
 	return themes
 }
 
@@ -78,6 +77,9 @@ func ThemeHandle(c echo.Context) (err error) {
 
 	var theme models.Theme
 	var suites []models.Suite
+
+	var DB = database.DB()
+
 	DB.Where("id = ?", themeID).First(&theme)
 
 	if _, ok := queryParams["is_read"]; ok {
@@ -115,6 +117,8 @@ func SuitesHandle(c echo.Context) (err error) {
 		return
 	}
 	var suites []models.Suite
+
+	DB := database.DB()
 	DB.Where("is_like = ?", query.IsLike).Find(&suites)
 	return c.Render(200, "layout:suites", suites)
 }
@@ -128,6 +132,9 @@ func SuiteHandle(c echo.Context) (err error) {
 	log.Debugf("suiteID: %d", sutieID)
 	var suite models.Suite
 	var images []models.Image
+
+	DB := database.DB()
+
 	DB.Where("id = ?", sutieID).Find(&suite)
 	log.Debugf("downloadsuite: %v", suite)
 	DB.Model(&suite).Related(&images).Order("name")
@@ -149,6 +156,9 @@ func SuiteReadHandle(c echo.Context) (err error) {
 		return c.Redirect(http.StatusNotFound, "/")
 	}
 	var suite models.Suite
+
+	DB := database.DB()
+
 	DB.First(&suite, suiteID)
 	suite.IsRead = !suite.IsRead
 	DB.Save(&suite)
@@ -165,6 +175,9 @@ func SuiteLikeHandle(c echo.Context) (err error) {
 		return c.Redirect(http.StatusNotFound, "/")
 	}
 	var suite models.Suite
+
+	DB := database.DB()
+
 	DB.First(&suite, suiteID)
 	suite.IsLike = !suite.IsLike
 	suite.IsRead = true
@@ -176,6 +189,8 @@ func SuiteLikeHandle(c echo.Context) (err error) {
 
 // InitDBHandle is view to init database depends on local files
 func InitDBHandle(c echo.Context) (err error) {
+	DB := database.DB()
+
 	// todo websocket，异步？
 	log.Println("droppig table ...")
 	DB.DropTableIfExists(models.Theme{}, models.Suite{}, models.Image{})
@@ -183,7 +198,7 @@ func InitDBHandle(c echo.Context) (err error) {
 	DB.AutoMigrate(models.Theme{}, models.Suite{}, models.Image{})
 	log.Println("start init db ...")
 	// todo: 这里因为用了session，所以在提交前也是看不到任何数据的
-	go config.Config.InitTheme()
+	go utils.InitTheme(config.Config)
 	return c.Redirect(302, "/")
 }
 
@@ -229,7 +244,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 		suite := downloadsuite.NewSuite(operator)
 		suite.Download()
 		// 重新加载进去
-		config.Config.InitTheme()
+		utils.InitTheme(config.Config)
 	}()
 	return c.String(http.StatusAccepted, "task downloadsuite sent ...")
 }
@@ -256,7 +271,7 @@ func TaskThemeHandle(c echo.Context) (err error) {
 		t := downloadsuite.NewTheme(url, config.Config.MediaPath)
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
-		config.Config.InitTheme()
+		utils.InitTheme(config.Config)
 	}()
 	return c.String(http.StatusAccepted, "task theme sent ...")
 }

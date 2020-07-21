@@ -15,6 +15,7 @@ func TestThemesHandle(t *testing.T) {
 	// Setup
 	e := echo.New()
 	e.Renderer = &config.Template{}
+	config.ReloadTemplates()
 	req := httptest.NewRequest(http.MethodGet, "/themes", nil)
 	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()

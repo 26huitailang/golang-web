@@ -116,7 +116,7 @@ func main() {
 	var EchoTemplate = &config.Template{}
 	e.Renderer = EchoTemplate
 
-	DB := database.New(config.Config.DataPath)
+	DB := database.DB()
 	store := &views.DatabaseStore{DB: DB}
 	handler := &views.Handler{Store: store}
 	// profiling
