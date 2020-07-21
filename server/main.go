@@ -35,7 +35,7 @@ func init() {
 	// initConfiguration()
 
 	// 模板预加载
-	ReloadTemplates()
+	config.ReloadTemplates()
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -113,7 +113,7 @@ func main() {
 	}))
 	// e.Use(middleware.JWT([]byte("secret")))
 
-	var EchoTemplate = &Template{}
+	var EchoTemplate = &config.Template{}
 	e.Renderer = EchoTemplate
 
 	DB := database.New(config.Config.DataPath)

@@ -1,8 +1,8 @@
 package views
 
 import (
+	"golang_web/config"
 	"golang_web/models"
-	main2 "golang_web/server"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,7 +14,7 @@ import (
 func TestThemesHandle(t *testing.T) {
 	// Setup
 	e := echo.New()
-	e.Renderer = &main2.Template{}
+	e.Renderer = &config.Template{}
 	req := httptest.NewRequest(http.MethodGet, "/themes", nil)
 	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()

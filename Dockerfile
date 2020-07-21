@@ -25,9 +25,9 @@ WORKDIR /go/release
 COPY . .
 WORKDIR /go/release/server
 RUN ls
-RUN go generate -v
+RUN go generate -v ..\...
 RUN ls
-RUN go build -o app && rice append --exec app
+RUN go build -o app
 
 # alpine/scratch/busybox choose one
 FROM alpine:3.12

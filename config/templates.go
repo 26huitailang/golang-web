@@ -1,5 +1,5 @@
 // https://gist.github.com/rand99/808e6e9702c00ce64803d94abff65678
-package main
+package config
 
 import (
 	rice "github.com/GeertJohan/go.rice"
