@@ -1,5 +1,8 @@
 # golang-web
 
+![](https://github.com/26hutailang/golang-web/workflows/.github/workflows/main.yml/badge.svg)
+![](https://github.com/26hutailang/golang-web/workflows/Go/badge.svg)
+
 ## todo
 
 - [ ] 使用cobra 作为命令入口
