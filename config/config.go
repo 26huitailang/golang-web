@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"golang_web/constants"
+	"golang_web/database"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"sync"
 
-	"golang_web/database"
 	"golang_web/models"
 
 	"github.com/jinzhu/gorm"
@@ -20,13 +20,15 @@ import (
 )
 
 var Config *Configuration
-var db = database.DB
+var db *gorm.DB
 
 type Configuration struct {
 	BasePath    string `json:"base_path"`
 	IP          string `json:"ip"`
 	DeployLevel int    `json:"deploy_level"`
 	Port        string `json:"port"`
+	DataPath    string `json:"data_path"`
+	MediaPath   string `json:"media_path"`
 }
 
 func init() {
@@ -37,17 +39,20 @@ func init() {
 		"0.0.0.0",
 		constants.Development,
 		":8000",
+		"/data",
+		"/data/media",
 	}
 	Config.initConfiguration()
 	fmt.Println("CONFIG:", Config)
+	db = database.New(Config.DataPath)
 }
 
 // 加载自定义配置，覆盖默认配置
 func (conf *Configuration) initConfiguration() {
 	// 文件是否存在
-	file, err := os.Open("config_demo.json")
+	file, err := os.Open("config_custom.json")
 	if err != nil {
-		log.Warn("config_custom.json not existed!\nUse default config_demo.json\n")
+		log.Warn("config_custom.json not existed!\nUse default\n")
 		return
 	}
 	defer file.Close()
@@ -86,7 +91,7 @@ type themeInfo struct {
 // InitTheme to init database from local files
 // todo: 跳过已经存在的suite
 func (conf *Configuration) InitTheme() {
-	dir, _ := ioutil.ReadDir(conf.BasePath)
+	dir, _ := ioutil.ReadDir(conf.MediaPath)
 	finish := make(chan themeInfo)
 	var wg sync.WaitGroup
 	tx := db.Begin()
@@ -100,7 +105,7 @@ func (conf *Configuration) InitTheme() {
 			defer wg.Done()
 			theme := &models.Theme{Name: folder.Name()}
 			tx.Create(theme)
-			themePath := filepath.Join(conf.BasePath, folder.Name())
+			themePath := filepath.Join(conf.MediaPath, folder.Name())
 			initSuiteByTheme(tx, themePath, theme, finish)
 			// Theme[folder.Name()] = suites
 		}(folder)

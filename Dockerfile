@@ -1,25 +1,41 @@
-FROM golang:1.13-stretch
+FROM golang:1.13-alpine3.12
 
-WORKDIR /go/src
-
-RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list && rm -rf /var/lib/apt/lists/* && apt-get update
+#RUN sed -i "s@http://deb.debian.org@http://mirrors.aliyun.com@g" /etc/apt/sources.list && rm -rf /var/lib/apt/lists/* && apt-get update
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk update
 # arm dependency
-RUN apt install gcc-arm-linux-gnueabi -y
-RUN apt clean
+#RUN apt install gcc-arm-linux-gnueabi -y
+#RUN apt clean
+RUN apk add --no-cache --virtual .build-deps \
+ 		gcc \
+ 		g++
+#RUN apk clean
+
+ENV GOPROXY https://goproxy.io,direct
+ENV GO111MODULE on
+
+WORKDIR /go/cache
 
 COPY go.mod .
 COPY go.sum .
-RUN go env -w GOPROXY=https://goproxy.io,direct
 RUN go mod download
-RUN go mod vendor
 RUN go get github.com/GeertJohan/go.rice/rice
-COPY . .
-WORKDIR /go/src/server
-RUN go generate
-RUN go build -o app
 
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=0 /go/src/server/app .
+WORKDIR /go/release
+COPY . .
+WORKDIR /go/release/server
+RUN ls
+RUN go generate -v
+RUN ls
+RUN go build -o app && rice append --exec app
+
+# alpine/scratch/busybox choose one
+FROM alpine:3.12
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+RUN apk --no-cache add ca-certificates sqlite
+RUN mkdir /data
+RUN sqlite3 /data/test.db
+WORKDIR /root
+COPY --from=0 /go/release/server/app .
+RUN ldd app
 CMD ["./app"]

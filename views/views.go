@@ -23,7 +23,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var DB = database.DB
+var DB = database.New(config.Config.DataPath)
 
 type DataStore interface {
 	GetThemes() []models.Theme
@@ -225,7 +225,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		operator := downloadsuite.NewMeituriSuite(url, config.Config.BasePath, downloadsuite.MeituriParser{})
+		operator := downloadsuite.NewMeituriSuite(url, config.Config.MediaPath, downloadsuite.MeituriParser{})
 		suite := downloadsuite.NewSuite(operator)
 		suite.Download()
 		// 重新加载进去
@@ -253,7 +253,7 @@ func TaskThemeHandle(c echo.Context) (err error) {
 				log.Errorf("%v", err)
 			}
 		}()
-		t := downloadsuite.NewTheme(url, config.Config.BasePath)
+		t := downloadsuite.NewTheme(url, config.Config.MediaPath)
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
 		config.Config.InitTheme()

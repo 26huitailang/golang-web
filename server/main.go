@@ -19,8 +19,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-var DB = database.DB
-
 // 初始化文件结构
 func init() {
 	// var err error
@@ -118,6 +116,7 @@ func main() {
 	var EchoTemplate = &Template{}
 	e.Renderer = EchoTemplate
 
+	DB := database.New(config.Config.DataPath)
 	store := &views.DatabaseStore{DB: DB}
 	handler := &views.Handler{Store: store}
 	// profiling
