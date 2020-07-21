@@ -1,6 +1,6 @@
 # golang-web
 
-![](https://github.com/26hutailang/golang-web/Build&Test/badge.svg)
+![](https://github.com/26huitailang/golang-web/workflows/Build%26Test/badge.svg)
 
 ## todo
 
