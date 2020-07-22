@@ -13,7 +13,7 @@ import (
 
 var db *gorm.DB
 
-func Init() {
+func init() {
 	// DB 小心:= 覆盖了声明的全局变量
 	var err error
 	db, err = gorm.Open("sqlite3", path.Join(config.Config.DataPath, "test.db"))

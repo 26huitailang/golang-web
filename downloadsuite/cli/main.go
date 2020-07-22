@@ -17,6 +17,7 @@ var isTheme bool
 
 func init() {
 	// https://www.meituri.com/a/26718/
+	// https://www.tujigu.com/a/26718/
 	flag.StringVar(&firstPage, "url", "", "Suite首页")
 	flag.StringVar(&folderSave, "folder", "", "保存的suite路径")
 	flag.BoolVar(&isTheme, "t", false, "Theme标记")

@@ -17,7 +17,7 @@ REMOTEPATH=pi@$(REMOTEIP):/home/pi/go/golang-web/
 DOCKERTAG=golang:1.13-stretch
 
 generate:
-	$(GOCMD) generate
+	$(GOCMD) generate ./...
 all: generate test build
 build: generate
 	$(GOBUILD) -o $(BINARY_NAME) -v
@@ -43,14 +43,14 @@ cover:
 build-linux: generate
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v
 build-arm: generate
-	$(GOBUILD) -o $(BINARY_ARM) -v main.go constants.go templates.go rice-box.go
+	$(GOBUILD) -o $(BINARY_ARM) -v ./server/...
 
 # docker 不要升级到1.14 依赖GLIBC 2.28 树莓派没有，可以试试stretch版本
 # docker run --rm -it golang:1.14 ldd --version
 docker-build: # 准备docker用于go build的环境
-	docker build -t $(DOCKERTAG) .
+	docker build -f Dockerfile.cross -t $(DOCKERTAG) .
 docker-build-arm:
-	docker run --rm -it -v "$(PWD)":/go/src -w /go/src -e CGO_ENABLED=1 -e GOOS=linux -e GOARCH=arm -e CC=arm-linux-gnueabi-gcc $(DOCKERTAG) make build-arm
+	docker run --rm -it -v "$(PWD)":/go/release -w /go/release -e CGO_ENABLED=1 -e GOOS=linux -e GOARCH=arm -e CC=arm-linux-gnueabi-gcc $(DOCKERTAG) make build-arm
 
 # documentation
 doc:
@@ -62,10 +62,8 @@ pprof:
 	$(GOTOOL) pprof $(PROFILE)
 
 scp:
-	scp config.json $(REMOTEPATH)
 	scp supervisor-golang-web.conf $(REMOTEPATH)
 	scp main_linux_arm $(REMOTEPATH)
-	scp -r templates $(REMOTEPATH)
 
 remote-stop:
 	ssh pi@pi -p 22 "\

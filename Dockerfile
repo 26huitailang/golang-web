@@ -25,7 +25,7 @@ WORKDIR /go/release
 COPY . .
 WORKDIR /go/release/server
 RUN ls
-RUN go generate -v ..\...
+RUN go generate -v ../...
 RUN ls
 RUN go build -o app
 

@@ -67,10 +67,7 @@ func ThemeHandle(c echo.Context) (err error) {
 	query := new(themeQuery)
 	if err = c.Bind(query); err != nil {
 		fmt.Printf("erererer1: %v", err)
-		return
-	}
-	log.Debugf("is_read: %v %T", query.IsRead, query.IsRead)
-	if err != nil {
+		log.Debugf("is_read: %v %T", query.IsRead, query.IsRead)
 		fmt.Printf("erererer2: %v", err)
 		return c.Redirect(404, "/")
 	}
@@ -146,7 +143,7 @@ func SuiteHandle(c echo.Context) (err error) {
 		suite,
 		images,
 	}
-	return c.Render(200, "layout:downloadsuite", data)
+	return c.Render(200, "layout:suite", data)
 }
 
 func SuiteReadHandle(c echo.Context) (err error) {
