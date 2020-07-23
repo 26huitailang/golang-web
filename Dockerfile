@@ -23,10 +23,8 @@ RUN go get github.com/GeertJohan/go.rice/rice
 
 WORKDIR /go/release
 COPY . .
-WORKDIR /go/release/server
-RUN ls
-RUN go generate -v ../...
-RUN ls
+WORKDIR /go/release
+RUN go generate -v ./...
 RUN go build -o app
 
 # alpine/scratch/busybox choose one

@@ -21,6 +21,8 @@ type Configuration struct {
 	MediaPath   string `json:"media_path"`
 }
 
+// todo: use cobra to get config
+
 func init() {
 	pwd, _ := os.Getwd()
 	Config = &Configuration{
@@ -28,8 +30,8 @@ func init() {
 		"0.0.0.0",
 		constants.Development,
 		":8000",
-		"/data",
-		"/data/media",
+		".",
+		".",
 	}
 	Config.initConfiguration()
 	fmt.Println("CONFIG:", Config)

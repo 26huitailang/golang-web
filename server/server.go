@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -20,20 +20,8 @@ import (
 )
 
 // 初始化文件结构
-func init() {
-	// var err error
-	// var config = config.Config
-	// log
-	// logfile, err := os.OpenFile("main.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	// if err == nil {
-	// 	log.SetOutput(logfile)
-	// } else {
-	// 	log.Info("Failed to log to file, using default stderr")
-	// }
-	// log.SetFormatter(&log.JSONFormatter{})
+func Init() {
 	log.SetLevel(log.DebugLevel)
-	// initConfiguration()
-
 	// 模板预加载
 	config.ReloadTemplates()
 }
@@ -86,7 +74,8 @@ func ws_view(c echo.Context) error {
 	return c.Render(200, "layout:websocket", "")
 }
 
-func main() {
+func NewServer() *echo.Echo {
+	Init()
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -148,10 +137,6 @@ func main() {
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
-	// server := http.Server{
-	// 	Addr:    addr,
-	// 	Handler: mux,
-	// }
-	// server.ListenAndServe()
-	e.Logger.Fatal(e.Start(config.Config.Port))
+
+	return e
 }

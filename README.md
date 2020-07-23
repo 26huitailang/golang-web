@@ -5,6 +5,7 @@
 ## todo
 
 - [ ] 使用cobra 作为命令入口
+    - 移植mq的consumer和producer到cobra
 - [ ] 整理文件组织
 - [ ] 使用 traefik
 - [ ] docker swarm
