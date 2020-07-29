@@ -3,6 +3,7 @@ package downloadsuite
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gosuri/uiprogress"
 	"github.com/nsqio/go-nsq"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // todo: 下载人员标签下的所有 https://www.lanvshen.com/t/5500/
@@ -31,6 +33,7 @@ type MeituriSuite struct {
 	ChanPage         chan string `json:"-"`
 	ChFailedImg      chan string `json:"-"` // 下载失败img放回
 	Parser           IMTRParser  `json:"-"`
+	Images           []*ImageInfo
 }
 
 type ImageInfo struct {
@@ -58,6 +61,7 @@ func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *Me
 		ChanPage:       make(chan string),
 		ChFailedImg:    make(chan string),
 		Parser:         parser,
+		Images:         []*ImageInfo{},
 	}
 	suite.FirstHTMLContent = suite.Parser.PageContent(firstPage)
 	suite.Title = suite.Parser.ParseTitle(suite.FirstHTMLContent)
@@ -67,7 +71,7 @@ func NewMeituriSuite(firstPage string, folderPath string, parser IMTRParser) *Me
 }
 
 // collectImages to collect every page images to a channel
-func (s *MeituriSuite) collectImages() <-chan string {
+func (s *MeituriSuite) collectImages() {
 	go s.GetPageURLs()
 
 	var chImgs []<-chan string
@@ -77,12 +81,20 @@ func (s *MeituriSuite) collectImages() <-chan string {
 	}
 	// 回收多个channel的结果
 	chImg := Merge(chImgs...)
-	return chImg
+	for imgURL := range chImg {
+		name := getNameFromURL(imgURL)
+		img := &ImageInfo{
+			name,
+			imgURL,
+			s.SuiteFolderPath,
+		}
+		s.Images = append(s.Images, img)
+	}
 }
 
 // Download 实现接口方法，下载chImg channel中的URL
 func (s *MeituriSuite) Download() {
-	chImg := s.collectImages()
+	s.collectImages()
 
 	// 文件夹检查
 	// 根据folder是不是基础路径来判断是否从org获取真实名称，并加入到路径中
@@ -94,38 +106,49 @@ func (s *MeituriSuite) Download() {
 	}
 
 	var chDownloads []<-chan string
+	chImg := make(chan *ImageInfo, 20)
+	go func() {
+		for _, img := range s.Images {
+			chImg <- img
+		}
+		close(chImg)
+	}()
 	for i := 0; i < s.countFanOut; i++ {
 		ch := s.downloader(chImg)
 		chDownloads = append(chDownloads, ch)
 	}
 
+	uiprogress.Start()
+	bar := uiprogress.AddBar(len(s.Images)).AppendCompleted().PrependElapsed()
+
 	// 回收下载结果
 	finish := Merge(chDownloads...)
 
-	for ret := range finish {
-		fmt.Println("finish: ", ret)
+	for _ = range finish {
+		bar.Incr()
+		//fmt.Println("finish: ", ret)
 	}
+	time.Sleep(time.Millisecond * 100)
 }
 
 // 下载
-func (s *MeituriSuite) downloader(inCh <-chan string) chan string {
+func (s *MeituriSuite) downloader(inCh <-chan *ImageInfo) chan string {
 	finish := make(chan string)
 
 	go func() {
 		defer close(finish)
-		for url := range inCh {
-			name := getNameFromURL(url)
-			name = path.Join(s.SuiteFolderPath, name)
+		for imageInfo := range inCh {
+			name := path.Join(s.SuiteFolderPath, imageInfo.Name)
 			if IsFileOrFolderExists(name) {
 				fmt.Println("已存在: ", name)
 				continue
 			}
-			content := getImageContent(url)
+			content := getImageContent(imageInfo.URL)
 			if ioutil.WriteFile(name, content, 0644) == nil {
-				finish <- url
+				finish <- imageInfo.URL
 			} else {
-				fmt.Println("failed: ", url, " 放入chFailedImg")
-				s.ChFailedImg <- url
+				fmt.Println("failed: ", imageInfo, " 放入chFailedImg")
+				s.ChFailedImg <- imageInfo.URL
 			}
 		}
 	}()
@@ -212,14 +235,9 @@ func (s *MeituriSuite) GetOrgName(content string) string {
 
 // Produce to produce img info to nsq
 func (s *MeituriSuite) Produce(producer *nsq.Producer, topic string) error {
-	chImages := s.collectImages()
-	for imgURL := range chImages {
-		name := getNameFromURL(imgURL)
-		img := &ImageInfo{
-			name,
-			imgURL,
-			s.SuiteFolderPath,
-		}
+	s.collectImages()
+	for img := range s.Images {
+
 		data, err := json.Marshal(img)
 		if err != nil {
 			return errors.Errorf("marshal image error: %s", err.Error())

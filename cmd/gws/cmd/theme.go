@@ -18,10 +18,12 @@ package cmd
 import (
 	"fmt"
 	"golang_web/downloadsuite"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
+// https://www.tujigu.com/x/82/
 // themeCmd represents the theme command
 var themeCmd = &cobra.Command{
 	Use:   "theme",
@@ -58,7 +60,9 @@ func init() {
 	rootCmd.AddCommand(themeCmd)
 	themeCmd.AddCommand(themeDownloadCmd)
 
-	suiteDownloadCmd.Flags().StringVarP(&folderSave, "folder", "f", ".", "folder to save contents")
+	dir, _ := os.Getwd()
+	themeDownloadCmd.Flags().StringVarP(&folderSave, "folder", "f", dir, "folder to save contents")
+	themeDownloadCmd.Flags().StringVarP(&firstPage, "url", "u", "", "suite url")
 	if err := suiteDownloadCmd.MarkFlagRequired("url"); err != nil {
 		fmt.Errorf("required url %s", err)
 	}

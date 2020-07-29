@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"golang_web/downloadsuite"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -58,7 +59,9 @@ func init() {
 	suiteCmd.AddCommand(suiteDownloadCmd)
 	rootCmd.AddCommand(suiteCmd)
 
-	suiteDownloadCmd.Flags().StringVarP(&folderSave, "folder", "f", ".", "folder to save contents")
+	dir, _ := os.Getwd()
+	suiteDownloadCmd.Flags().StringVarP(&folderSave, "folder", "f", dir, "folder to save contents")
+	suiteDownloadCmd.Flags().StringVarP(&firstPage, "url", "u", "", "suite url")
 	if err := suiteDownloadCmd.MarkFlagRequired("url"); err != nil {
 		fmt.Errorf("required url %s", err)
 	}
