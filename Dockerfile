@@ -25,7 +25,9 @@ WORKDIR /go/release
 COPY . .
 WORKDIR /go/release
 RUN go generate -v ./...
-RUN go build -o app
+RUN go build -o app ./cmd/gws/.
+RUN pwd
+RUN ls -lh
 
 # alpine/scratch/busybox choose one
 FROM alpine:3.12
@@ -34,6 +36,6 @@ RUN apk --no-cache add ca-certificates sqlite
 RUN mkdir /data
 RUN sqlite3 /data/test.db
 WORKDIR /root
-COPY --from=0 /go/release/server/app .
+COPY --from=0 /go/release/app .
 RUN ldd app
-CMD ["./app"]
+CMD ["./app", "server"]

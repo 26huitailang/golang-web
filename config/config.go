@@ -19,6 +19,11 @@ type Configuration struct {
 	Port        string `json:"port"`
 	DataPath    string `json:"data_path"`
 	MediaPath   string `json:"media_path"`
+	UIProgress  *UIProgressConf
+}
+
+type UIProgressConf struct {
+	Show bool `json:"show"`
 }
 
 // todo: use cobra to get config
@@ -30,8 +35,9 @@ func init() {
 		"0.0.0.0",
 		constants.Development,
 		":8000",
-		".",
-		".",
+		"/data",
+		"/data/media",
+		&UIProgressConf{Show: false},
 	}
 	Config.initConfiguration()
 	fmt.Println("CONFIG:", Config)

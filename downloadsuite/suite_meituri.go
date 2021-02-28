@@ -6,14 +6,15 @@ import (
 	"github.com/gosuri/uiprogress"
 	"github.com/nsqio/go-nsq"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"golang_web/config"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // todo: 下载人员标签下的所有 https://www.lanvshen.com/t/5500/
@@ -88,6 +89,7 @@ func (s *MeituriSuite) collectImages() {
 			imgURL,
 			s.SuiteFolderPath,
 		}
+		log.Debug("append image to s.Images:", img)
 		s.Images = append(s.Images, img)
 	}
 }
@@ -118,17 +120,26 @@ func (s *MeituriSuite) Download() {
 		chDownloads = append(chDownloads, ch)
 	}
 
-	uiprogress.Start()
-	bar := uiprogress.AddBar(len(s.Images)).AppendCompleted().PrependElapsed()
+	if config.Config.UIProgress.Show {
+		uiprogress.Start()
+		bar := uiprogress.AddBar(len(s.Images)).AppendCompleted().PrependElapsed()
 
-	// 回收下载结果
-	finish := Merge(chDownloads...)
+		// 回收下载结果
+		finish := Merge(chDownloads...)
 
-	for _ = range finish {
-		bar.Incr()
-		//fmt.Println("finish: ", ret)
+		for _ = range finish {
+			bar.Incr()
+			//fmt.Println("finish: ", ret)
+		}
+		//uiprogress.Stop()
+		//time.Sleep(time.Millisecond * 100)
+	} else {
+		finish := Merge(chDownloads...)
+		for v := range finish {
+			log.Debug("finish: ", v)
+		}
 	}
-	time.Sleep(time.Millisecond * 100)
+	//time.Sleep(time.Millisecond * 100)
 }
 
 // 下载
@@ -166,9 +177,11 @@ func getPageURLs(s *MeituriSuite) {
 	for i := 1; i <= s.PageMax; i++ {
 		switch i {
 		case 1: // 第一页特殊
+			log.Debug("write page to s.ChanPage:", s.FirstPage)
 			s.ChanPage <- s.FirstPage
 		default:
 			pageURL := s.generatePageURL(i)
+			log.Debug("write page to s.ChanPage:", pageURL)
 			s.ChanPage <- pageURL
 		}
 	}
@@ -183,9 +196,10 @@ func (s *MeituriSuite) GetImgURLs() <-chan string {
 			select {
 			case url, ok := <-s.ChanPage:
 				if !ok {
-					fmt.Println("no more url")
+					log.Info("no more url, ChangePage status:", ok, url)
 					return
 				}
+				log.Debug("Try to get content:", url)
 				content := GetPageContent(url)
 				divContent := parseDivContent(content)
 				imgSrcs := parseImg(divContent)
@@ -222,7 +236,7 @@ func (s *MeituriSuite) getSuiteFolderPath() string {
 
 	// theme 处理时不提取name，统一在这里获取
 	orgName := s.GetOrgName(s.FirstHTMLContent)
-	s.SuiteFolderPath = path.Join(s.BaseFolderPath, orgName, s.Title)
+	s.SuiteFolderPath = filepath.Join(s.BaseFolderPath, orgName, s.Title)
 	return s.SuiteFolderPath
 }
 
@@ -346,6 +360,6 @@ func parseOrgName(content string) string {
 	re = regexp.MustCompile(`<a href="(.*?)" target="_blank">(.*?)</a>`) // 非贪婪
 	texts = re.FindStringSubmatch(content)
 	title = texts[2]
-	log.Println("title includes </a>:", title)
+	log.Println("title includes:", title)
 	return title
 }

@@ -120,7 +120,7 @@ func NewServer() *echo.Echo {
 		return c.String(http.StatusOK, resp)
 	})
 
-	e.POST("/task/downloadsuite", views.TaskSuiteHandle)
+	e.POST("/task/suite", views.TaskSuiteHandle)
 	e.POST("/task/theme", views.TaskThemeHandle)
 
 	e.GET("/themes", handler.ThemesHandle)
