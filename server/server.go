@@ -133,7 +133,7 @@ func NewServer() *echo.Echo {
 	devopsGroup := e.Group("/devops")
 	devopsGroup.POST("/initdb", views.InitDBHandle)
 	devopsGroup.GET("", views.DevopsHandle)
-	e.Static("/image/*filepath", config.Config.BasePath)
+	e.Static("/image/*filepath", config.Config.MediaPath)
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
