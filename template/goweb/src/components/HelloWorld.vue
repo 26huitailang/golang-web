@@ -14,6 +14,7 @@
     Edit
     <code>components/HelloWorld.vue</code> to test hot module replacement.
   </p>
+  <n-button>Naive-ui</n-button>
 </template>
 
 <script setup>
