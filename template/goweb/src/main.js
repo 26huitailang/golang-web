@@ -1,5 +1,6 @@
 import {createApp} from 'vue'
 import App from './App.vue'
+import {router} from "./route";
 import {
     create,
     NAnchor,
@@ -26,6 +27,7 @@ const naive = create({
         NSpace, NAnchorLink, NSwitch, NAnchor, NMenu,
     ]
 })
-const app = createApp(App)
-app.use(naive)
+const app = createApp({})
+// app.use(naive)
+app.use(router)
 app.mount('#app')
