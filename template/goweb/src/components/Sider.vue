@@ -29,6 +29,7 @@ import {
   PersonOutline as PersonIcon,
   WineOutline as WineIcon
 } from '@vicons/ionicons5'
+import {RouterLink} from "vue-router";
 
 function renderIcon (icon) {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -36,8 +37,36 @@ function renderIcon (icon) {
 
 const menuOptions = [
   {
-    label: '且听风吟',
-    key: 'hear-the-wind-sing',
+    label: () => h(
+        RouterLink,
+        {
+          to: "/home",
+        },
+        'Home'
+    ),
+    key: 'home',
+    icon: renderIcon(BookIcon)
+  },
+  {
+    label: () => h(
+        RouterLink,
+        {
+          to: "/theme",
+        },
+        'Theme'
+    ),
+    key: 'theme',
+    icon: renderIcon(BookIcon)
+  },
+  {
+    label: () => h(
+        RouterLink,
+        {
+          to: "/suite",
+        },
+        'Suite'
+    ),
+    key: 'suite',
     icon: renderIcon(BookIcon)
   },
   {
@@ -118,3 +147,14 @@ export default defineComponent({
   }
 })
 </script>
+
+<style>
+.router-link {
+  text-decoration: none;
+  color: black;
+}
+.router-link-active {
+  text-decoration: none;
+  color: black;
+}
+</style>

@@ -5,9 +5,7 @@
       <n-layout position="absolute" style="top: 64px; bottom: 64px;" has-sider>
         <Sider></Sider>
         <n-layout content-style="padding: 24px" :native-scrollbar="false">
-          <p>平山道</p>
-          <p>平山道</p>
-          <p>平山道</p>
+          <router-view></router-view>
         </n-layout>
       </n-layout>
       <n-layout-footer>成府路</n-layout-footer>
