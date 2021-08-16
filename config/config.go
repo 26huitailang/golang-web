@@ -3,8 +3,8 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/26huitailang/golang_web/constants"
 	log "github.com/sirupsen/logrus"
-	"golang_web/constants"
 	"io/ioutil"
 	"os"
 	"reflect"
