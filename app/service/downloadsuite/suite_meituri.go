@@ -3,11 +3,11 @@ package downloadsuite
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/26huitailang/golang_web/config"
 	"github.com/gosuri/uiprogress"
 	"github.com/nsqio/go-nsq"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"golang_web/config"
 	"io/ioutil"
 	"os"
 	"path"

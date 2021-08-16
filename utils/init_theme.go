@@ -2,11 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
+	"github.com/26huitailang/golang_web/database"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
-	"golang_web/config"
-	"golang_web/database"
-	"golang_web/models"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,7 +37,7 @@ func InitTheme(conf *config.Configuration) {
 		// handle one theme
 		go func(folder os.FileInfo) {
 			defer wg.Done()
-			theme := &models.Theme{Name: folder.Name()}
+			theme := &model.Theme{Name: folder.Name()}
 			tx.Create(theme)
 			themePath := filepath.Join(conf.MediaPath, folder.Name())
 			initSuiteByTheme(tx, themePath, theme, finish)
@@ -59,7 +59,7 @@ func InitTheme(conf *config.Configuration) {
 	tx.Commit()
 }
 
-func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out chan<- themeInfo) {
+func initSuiteByTheme(tx *gorm.DB, themePath string, theme *model.Theme, out chan<- themeInfo) {
 	err := filepath.Walk(themePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Println(err)
@@ -71,7 +71,7 @@ func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out ch
 		if filepath.Base(themePath) == info.Name() {
 			return nil
 		}
-		suite := &models.Suite{Name: info.Name(), ThemeID: theme.ID}
+		suite := &model.Suite{Name: info.Name(), ThemeID: theme.ID}
 		// 跳过已存在的suite
 		if err := tx.Create(suite).Error; err != nil {
 			logrus.Infoln("db instert downloadsuite skip existed:", suite.Name)
@@ -88,7 +88,7 @@ func initSuiteByTheme(tx *gorm.DB, themePath string, theme *models.Theme, out ch
 	}
 }
 
-func initImageBySuite(tx *gorm.DB, suite *models.Suite, suitePath string) (n int, err error) {
+func initImageBySuite(tx *gorm.DB, suite *model.Suite, suitePath string) (n int, err error) {
 	n = 0
 	err = filepath.Walk(suitePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -98,7 +98,7 @@ func initImageBySuite(tx *gorm.DB, suite *models.Suite, suitePath string) (n int
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".jpg") {
 			themeName := filepath.Base(filepath.Dir(suitePath))
 			imgPath := filepath.Join(themeName, filepath.Base(suitePath), info.Name())
-			img := &models.Image{Path: imgPath, SuiteID: suite.ID}
+			img := &model.Image{Path: imgPath, SuiteID: suite.ID}
 			tx.Create(img)
 			n++
 		}

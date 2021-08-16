@@ -1,8 +1,8 @@
 package downloadsuite_test
 
 import (
+	"github.com/26huitailang/golang_web/app/service/downloadsuite"
 	"github.com/stretchr/testify/assert"
-	"golang_web/downloadsuite"
 	"testing"
 )
 
