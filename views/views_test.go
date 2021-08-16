@@ -1,8 +1,8 @@
 package views
 
 import (
-	"golang_web/config"
-	"golang_web/models"
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,7 +21,7 @@ func TestThemesHandle(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	h := &Handler{Store: &StubStore{
-		themes: []models.Theme{
+		themes: []model.Theme{
 			{
 				Name: "Hey Ha",
 			},
@@ -36,9 +36,9 @@ func TestThemesHandle(t *testing.T) {
 }
 
 type StubStore struct {
-	themes []models.Theme
+	themes []model.Theme
 }
 
-func (s *StubStore) GetThemes() []models.Theme {
+func (s *StubStore) GetThemes() []model.Theme {
 	return s.themes
 }

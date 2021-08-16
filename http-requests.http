@@ -1,3 +1,1 @@
-GET https://tujigu.com
-Accept: */*
-Accept-Language: zh-CN,zh;
+GET http://127.0.0.1:8199/suites

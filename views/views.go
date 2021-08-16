@@ -2,9 +2,10 @@ package views
 
 import (
 	"fmt"
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/database"
+	"github.com/26huitailang/golang_web/utils"
 	"github.com/jinzhu/gorm"
-	"golang_web/database"
-	"golang_web/utils"
 	"net/http"
 	"os"
 	"os/exec"
@@ -14,18 +15,16 @@ import (
 
 	"github.com/labstack/echo/middleware"
 
-	"golang_web/models"
-
 	"github.com/labstack/echo"
 
-	"golang_web/config"
-	"golang_web/downloadsuite"
+	"github.com/26huitailang/golang_web/app/service/downloadsuite"
+	"github.com/26huitailang/golang_web/config"
 
 	log "github.com/sirupsen/logrus"
 )
 
 type DataStore interface {
-	GetThemes() []models.Theme
+	GetThemes() []model.Theme
 }
 
 type Handler struct {
@@ -36,8 +35,8 @@ type DatabaseStore struct {
 	DB *gorm.DB
 }
 
-func (db *DatabaseStore) GetThemes() []models.Theme {
-	var themes []models.Theme
+func (db *DatabaseStore) GetThemes() []model.Theme {
+	var themes []model.Theme
 	db.DB.Order("name").Find(&themes)
 	return themes
 }
@@ -72,8 +71,8 @@ func ThemeHandle(c echo.Context) (err error) {
 		return c.Redirect(404, "/")
 	}
 
-	var theme models.Theme
-	var suites []models.Suite
+	var theme model.Theme
+	var suites []model.Suite
 
 	var DB = database.DB()
 
@@ -88,11 +87,11 @@ func ThemeHandle(c echo.Context) (err error) {
 	log.Debugf("theme api suites[%s]: %v", theme.Name, suites)
 
 	var countRead, countUnread int
-	DB.Model(&models.Suite{}).Where("theme_id = ? and is_read = true", themeID).Count(&countRead)
-	DB.Model(&models.Suite{}).Where("theme_id = ? and is_read = false", themeID).Count(&countUnread)
+	DB.Model(&model.Suite{}).Where("theme_id = ? and is_read = true", themeID).Count(&countRead)
+	DB.Model(&model.Suite{}).Where("theme_id = ? and is_read = false", themeID).Count(&countUnread)
 	data := struct {
-		Theme       models.Theme
-		Suites      []models.Suite
+		Theme       model.Theme
+		Suites      []model.Suite
 		CountRead   int
 		CountUnread int
 	}{
@@ -104,22 +103,6 @@ func ThemeHandle(c echo.Context) (err error) {
 	return c.Render(http.StatusOK, "layout:theme", data)
 }
 
-type suitesQuery struct {
-	IsLike bool `query:"is_like"`
-}
-
-func SuitesHandle(c echo.Context) (err error) {
-	query := new(suitesQuery)
-	if err = c.Bind(query); err != nil {
-		return
-	}
-	var suites []models.Suite
-
-	DB := database.DB()
-	DB.Where("is_like = ?", query.IsLike).Find(&suites)
-	return c.Render(200, "layout:suites", suites)
-}
-
 func SuiteHandle(c echo.Context) (err error) {
 	var sutieID int
 	sutieID, err = strconv.Atoi(c.Param("suite_id"))
@@ -127,8 +110,8 @@ func SuiteHandle(c echo.Context) (err error) {
 		return c.Redirect(http.StatusNotFound, "/")
 	}
 	log.Debugf("suiteID: %d", sutieID)
-	var suite models.Suite
-	var images []models.Image
+	var suite model.Suite
+	var images []model.Image
 
 	DB := database.DB()
 
@@ -137,8 +120,8 @@ func SuiteHandle(c echo.Context) (err error) {
 	DB.Model(&suite).Related(&images).Order("name")
 	log.Debugf("images: %v", images)
 	data := struct {
-		Suite  models.Suite
-		Images []models.Image
+		Suite  model.Suite
+		Images []model.Image
 	}{
 		suite,
 		images,
@@ -152,7 +135,7 @@ func SuiteReadHandle(c echo.Context) (err error) {
 	if err != nil {
 		return c.Redirect(http.StatusNotFound, "/")
 	}
-	var suite models.Suite
+	var suite model.Suite
 
 	DB := database.DB()
 
@@ -171,7 +154,7 @@ func SuiteLikeHandle(c echo.Context) (err error) {
 	if err != nil {
 		return c.Redirect(http.StatusNotFound, "/")
 	}
-	var suite models.Suite
+	var suite model.Suite
 
 	DB := database.DB()
 
@@ -190,9 +173,9 @@ func InitDBHandle(c echo.Context) (err error) {
 
 	// todo websocket，异步？
 	log.Println("droppig table ...")
-	DB.DropTableIfExists(models.Theme{}, models.Suite{}, models.Image{})
+	DB.DropTableIfExists(model.Theme{}, model.Suite{}, model.Image{})
 	log.Println("migrating table ...")
-	DB.AutoMigrate(models.Theme{}, models.Suite{}, models.Image{})
+	DB.AutoMigrate(model.Theme{}, model.Suite{}, model.Image{})
 	log.Println("start init db ...")
 	// todo: 这里因为用了session，所以在提交前也是看不到任何数据的
 	go utils.InitTheme(config.Config)

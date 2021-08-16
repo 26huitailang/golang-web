@@ -1,12 +1,6 @@
-package models
+package model
 
 import "github.com/jinzhu/gorm"
-
-type Theme struct {
-	gorm.Model
-	Name   string `gorm:"not null;unique"`
-	Suites []Suite
-}
 
 type Suite struct {
 	gorm.Model
@@ -17,8 +11,10 @@ type Suite struct {
 	IsLike  bool `gorm:"DEFAULT:false"`
 }
 
-type Image struct {
-	gorm.Model
-	Path    string
-	SuiteID uint
+type SuitesQuery struct {
+	IsLike bool `query:"is_like"`
+}
+
+type SuiteApiDownloadReq struct {
+	Url string `query:"url"`
 }

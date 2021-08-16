@@ -1,8 +1,8 @@
 package main
 
 import (
-	"golang_web/config"
-	"golang_web/server"
+	"github.com/26huitailang/golang_web/config"
+	"github.com/26huitailang/golang_web/server"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module golang_web
+module github.com/26huitailang/golang_web
 
 go 1.14
 

@@ -1,14 +1,12 @@
 package database
 
 import (
-	"golang_web/config"
-	"log"
-	"path"
-
-	"golang_web/models"
-
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"log"
+	"path"
 )
 
 var db *gorm.DB
@@ -24,7 +22,7 @@ func init() {
 
 	// 迁移
 	db.SingularTable(true) // 单数表名
-	db.AutoMigrate(&models.Theme{}, &models.Suite{}, &models.Image{})
+	db.AutoMigrate(&model.Theme{}, &model.Suite{}, &model.Image{})
 	// sqlite 对alter table的支持有限，不支持rename column和remove column
 	// err = DB.Model(&Image{}).DropColumn("IsRead").Erro
 }
