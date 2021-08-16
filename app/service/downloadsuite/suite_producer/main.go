@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
+	"github.com/26huitailang/golang_web/app/service/downloadsuite"
 	"github.com/nsqio/go-nsq"
-	"golang_web/downloadsuite"
 	"log"
 )
 

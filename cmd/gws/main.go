@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "golang_web/cmd/gws/cmd"
+import "github.com/26huitailang/golang_web/cmd/gws/cmd"
 
 func main() {
 	cmd.Execute()

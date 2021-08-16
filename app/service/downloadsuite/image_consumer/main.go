@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/26huitailang/golang_web/app/service/downloadsuite"
 	"github.com/nsqio/go-nsq"
-	"golang_web/downloadsuite"
 	"io/ioutil"
 	"log"
 	"os"

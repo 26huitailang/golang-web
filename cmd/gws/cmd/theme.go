@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"fmt"
-	"golang_web/downloadsuite"
+	"github.com/26huitailang/golang_web/app/service/downloadsuite"
 	"os"
 
 	"github.com/spf13/cobra"
