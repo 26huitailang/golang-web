@@ -1,14 +1,16 @@
 <template>
 <!--  <img alt="Vue logo" src="./assets/logo.png" />-->
 <!--  <HelloWorld msg="Hello Vue 3 + Vite" />-->
-  <n-message-provider>
-    <Layout></Layout>
-  </n-message-provider>
+  <div style="height: 100%">
+    <n-message-provider>
+      <Layout></Layout>
+    </n-message-provider>
+  </div>
 </template>
 
 <script setup>
 // import HelloWorld from './components/HelloWorld.vue'
-import Layout from './components/Layout.vue'
+import Layout from './views/Layout.vue'
 
 // This starter template is using Vue 3 experimental <script setup> SFCs
 // Check out https://github.com/vuejs/rfcs/blob/script-setup-2/active-rfcs/0000-script-setup.md
