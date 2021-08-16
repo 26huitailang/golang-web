@@ -1,90 +1,56 @@
 <template>
-  <n-space vertical>
-    <n-space> <n-switch v-model:value="collapsed" />collapsed</n-space>
-    <n-layout has-sider>
-      <n-layout-sider
-          bordered
-          collapse-mode="width"
-          :collapsed-width="64"
-          :width="240"
-          show-trigger
-          :collapsed="collapsed"
-      >
-        <n-menu
-            :collapsed="collapsed"
-            :collapsed-width="64"
-            :collapsed-icon-size="22"
-            :options="menuOptions"
-        />
-      </n-layout-sider>
-    </n-layout>
-  </n-space>
+  <n-layout-sider
+    bordered
+    collapse-mode="width"
+    :collapsed-width="64"
+    :width="240"
+    show-trigger
+    :native-scrollbar="false"
+  >
+    <n-menu
+      :collapsed-width="64"
+      :collapsed-icon-size="22"
+      :options="menuOptions"
+      @update:value="handleUpdateValue"
+    />
+  </n-layout-sider>
 </template>
 
 <script>
-import { h, defineComponent, ref } from 'vue'
-import { NIcon } from 'naive-ui'
-import {
-  BookOutline as BookIcon,
-  PersonOutline as PersonIcon,
-  WineOutline as WineIcon
-} from '@vicons/ionicons5'
+import {defineComponent, h, ref} from 'vue'
+import {NIcon} from 'naive-ui'
+import {BookOutline as BookIcon, PersonOutline as PersonIcon, WineOutline as WineIcon} from '@vicons/ionicons5'
 import {RouterLink} from "vue-router";
+import router from "../router";
 
-function renderIcon (icon) {
-  return () => h(NIcon, null, { default: () => h(icon) })
+function renderIcon(icon) {
+  return () => h(NIcon, null, {default: () => h(icon)})
 }
 
 const menuOptions = [
   {
-    label: () => h(
-        RouterLink,
-        {
-          to: "/home",
-        },
-        'Home'
-    ),
+    label: 'Home',
+    path: '/home',
     key: 'home',
     icon: renderIcon(BookIcon)
   },
   {
-    label: () => h(
-        RouterLink,
-        {
-          to: "/theme",
-        },
-        'Theme'
-    ),
+    label: 'Theme',
+    path: '/theme',
     key: 'theme',
     icon: renderIcon(BookIcon)
   },
   {
-    label: () => h(
-        RouterLink,
-        {
-          to: "/suite",
-        },
-        'Suite'
-    ),
+    label: 'Suite',
+    path: '/suite',
     key: 'suite',
     icon: renderIcon(BookIcon)
   },
   {
-    label: '1973年的弹珠玩具',
-    key: 'pinball-1973',
-    icon: renderIcon(BookIcon),
-    disabled: true,
-    children: [
-      {
-        label: '鼠',
-        key: 'rat'
-      }
-    ]
-  },
-  {
-    label: '寻羊冒险记',
-    key: 'a-wild-sheep-chase',
-    disabled: true,
+    label: 'Tasks',
+    path: '/tasks',
+    key: 'tasks',
+    disabled: false,
     icon: renderIcon(BookIcon)
   },
   {
@@ -139,10 +105,13 @@ const menuOptions = [
 ]
 
 export default defineComponent({
-  setup () {
+  setup() {
     return {
       collapsed: ref(false),
-      menuOptions
+      menuOptions,
+      handleUpdateValue(key, item) {
+        router.push(item.path)
+      }
     }
   }
 })
@@ -153,6 +122,7 @@ export default defineComponent({
   text-decoration: none;
   color: black;
 }
+
 .router-link-active {
   text-decoration: none;
   color: black;

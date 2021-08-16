@@ -1,11 +1,12 @@
 import axios from 'axios'
 import {useMessage} from 'naive-ui'
-import store from '@/store'
+// import store from '@/store'
 // import { getToken } from '@/utils/auth'
 
+const Message = useMessage()
 // create an axios instance
 const service = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
+  baseURL: import.meta.env.VUE_APP_BASE_API, // url = base url + request url
   withCredentials: true, // send cookies when cross-domain requests
   xsrfCookieName: 'csrftoken',
   xsrfHeaderName: 'X-CSRFToken',
@@ -13,7 +14,7 @@ const service = axios.create({
 })
 
 export const fileUpload = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
+  baseURL: import.meta.env.VUE_APP_BASE_API, // url = base url + request url
 })
 
 // request interceptor
@@ -55,7 +56,7 @@ service.interceptors.response.use(
 
     // if the custom code is not 20000, it is judged as an error.
     if (statusCode !== 200 && statusCode !== 202 && statusCode !== 204) {
-      Message({
+      Message.error({
         message: res.message || 'Error',
         type: 'error',
         duration: 5 * 1000,
@@ -64,15 +65,15 @@ service.interceptors.response.use(
       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
       if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
         // to re-login
-        MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
-          confirmButtonText: 'Re-Login',
-          cancelButtonText: 'Cancel',
-          type: 'warning',
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
-        })
+        // MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
+        //   confirmButtonText: 'Re-Login',
+        //   cancelButtonText: 'Cancel',
+        //   type: 'warning',
+        // }).then(() => {
+        //   store.dispatch('user/resetToken').then(() => {
+        //     location.reload()
+        //   })
+        // })
       }
       return Promise.reject(new Error(res.message || 'Error'))
     } else {
@@ -84,15 +85,15 @@ service.interceptors.response.use(
     let message = error.response.data.message
     // todo: use custom code to get flexibility
     if (status === 401 && message !== 'info error, please login again') {
-      MessageBox.confirm('You\'ve been logged out. Click <Re-Login> to login page. Click <Cancel> to stay this page', 'Confirm logged out', {
-        confirmButtonText: 'Re-Login',
-        cancelButtonText: 'Cancel',
-        type: 'warning',
-      }).then(() => {
-        store.dispatch('user/resetSessionID').then(() => {
-          location.reload()
-        })
-      })
+      // MessageBox.confirm('You\'ve been logged out. Click <Re-Login> to login page. Click <Cancel> to stay this page', 'Confirm logged out', {
+      //   confirmButtonText: 'Re-Login',
+      //   cancelButtonText: 'Cancel',
+      //   type: 'warning',
+      // }).then(() => {
+      //   store.dispatch('user/resetSessionID').then(() => {
+      //     location.reload()
+      //   })
+      // })
     }
 
     if (!message) {
@@ -103,7 +104,7 @@ service.interceptors.response.use(
     if (message.hasOwnProperty('captcha')) {
       message = 'Invalid Captcha'
     }
-    Message({
+    Message.error({
       message: message,
       type: 'error',
       duration: 5 * 1000,
