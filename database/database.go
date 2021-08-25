@@ -22,7 +22,8 @@ func init() {
 
 	// 迁移
 	db.SingularTable(true) // 单数表名
-	db.AutoMigrate(&model.Theme{}, &model.Suite{}, &model.Image{})
+	db.CreateTable(&model.User{})
+	db.AutoMigrate(&model.Theme{}, &model.Suite{}, &model.Image{}, &model.User{})
 	// sqlite 对alter table的支持有限，不支持rename column和remove column
 	// err = DB.Model(&Image{}).DropColumn("IsRead").Erro
 }

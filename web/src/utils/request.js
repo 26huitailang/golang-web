@@ -64,7 +64,7 @@ service.interceptors.response.use(
 
       // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
       if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
-        // to re-login
+        // to re-Login
         // MessageBox.confirm('You have been logged out, you can cancel to stay on this page, or log in again', 'Confirm logout', {
         //   confirmButtonText: 'Re-Login',
         //   cancelButtonText: 'Cancel',
@@ -84,8 +84,8 @@ service.interceptors.response.use(
     const status = error.response.status
     let message = error.response.data.message
     // todo: use custom code to get flexibility
-    if (status === 401 && message !== 'info error, please login again') {
-      // MessageBox.confirm('You\'ve been logged out. Click <Re-Login> to login page. Click <Cancel> to stay this page', 'Confirm logged out', {
+    if (status === 401 && message !== 'info error, please Login again') {
+      // MessageBox.confirm('You\'ve been logged out. Click <Re-Login> to Login page. Click <Cancel> to stay this page', 'Confirm logged out', {
       //   confirmButtonText: 'Re-Login',
       //   cancelButtonText: 'Cancel',
       //   type: 'warning',
