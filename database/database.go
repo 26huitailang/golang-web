@@ -7,14 +7,24 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"log"
 	"path"
+	"strings"
 )
 
 var db *gorm.DB
+var testDb *gorm.DB
 
 func init() {
+	connectDB(db, config.Config.DB)
+}
+
+func DB() *gorm.DB {
+	return db
+}
+
+func connectDB(db *gorm.DB, dbFile string) {
 	// DB 小心:= 覆盖了声明的全局变量
 	var err error
-	db, err = gorm.Open("sqlite3", path.Join(config.Config.DataPath, "test.db"))
+	db, err = gorm.Open("sqlite3", path.Join(config.Config.DataPath, dbFile))
 	if err != nil {
 		log.Panicf("DB connect error: %s", err)
 	}
@@ -28,6 +38,8 @@ func init() {
 	// err = DB.Model(&Image{}).DropColumn("IsRead").Erro
 }
 
-func DB() *gorm.DB {
-	return db
+func TestDB() *gorm.DB {
+	dbFile := strings.Join([]string{config.Config.DB, "test"}, "")
+	connectDB(testDb, dbFile)
+	return testDb
 }

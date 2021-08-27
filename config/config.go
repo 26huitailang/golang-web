@@ -7,7 +7,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"reflect"
+	"runtime"
 )
 
 var Config *Configuration
@@ -17,6 +20,7 @@ type Configuration struct {
 	IP          string `json:"ip"`
 	DeployLevel int    `json:"deploy_level"`
 	Port        string `json:"port"`
+	DB          string `json:"db"`
 	DataPath    string `json:"data_path"`
 	MediaPath   string `json:"media_path"`
 	UIProgress  *UIProgressConf
@@ -35,6 +39,7 @@ func init() {
 		"0.0.0.0",
 		constants.Development,
 		":8000",
+		"test.db",
 		"/data",
 		"/data/media",
 		&UIProgressConf{Show: false},
@@ -46,9 +51,10 @@ func init() {
 // 加载自定义配置，覆盖默认配置
 func (conf *Configuration) initConfiguration() {
 	// 文件是否存在
-	file, err := os.Open("config_custom.json")
+	customConfPath := filepath.Join(GetCurrentPath(), "config_custom.json")
+	file, err := os.Open(customConfPath)
 	if err != nil {
-		log.Warn("config_custom.json not existed!\nUse default\n")
+		log.Warn(customConfPath, "not existed!\nUse default\n")
 		return
 	}
 	defer file.Close()
@@ -75,4 +81,13 @@ func (conf *Configuration) initConfiguration() {
 		}
 	}
 	log.Println("custom config:", conf)
+}
+
+func GetCurrentPath() string {
+	var abPath string
+	_, filename, _, ok := runtime.Caller(0)
+	if ok {
+		abPath = path.Dir(filename)
+	}
+	return abPath
 }

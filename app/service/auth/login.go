@@ -13,5 +13,6 @@ type userService struct{}
 
 func (s userService) Authenticate(username, password string) (err error) {
 	//	todo: 完成测试和设计
+
 	return nil
 }
