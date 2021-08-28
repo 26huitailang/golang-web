@@ -6,19 +6,27 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var User = userDao{
-	db: database.DB(),
+var User = &userDao{
+	DB: database.DB(),
 }
 
 type userDao struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
-func (d userDao) CreateOne(User *model.User) (error, *model.User) {
-	result := d.db.Create(User)
-	return result.Error, User
+func (d *userDao) CreateOne(User *model.User) (*model.User, error) {
+	result := d.DB.Create(User)
+	return User, result.Error
 }
-func (d userDao) GetOne(Id uint) (user model.User) {
-	d.db.First(user, Id)
+
+func (d *userDao) GetOne(Id uint) (user *model.User) {
+	user = &model.User{}
+	d.DB.First(user, Id)
+	return user
+}
+
+func (d *userDao) GetOneByUsername(username string) *model.User {
+	user := &model.User{}
+	d.DB.Where(&model.User{Username: username}).First(user)
 	return user
 }

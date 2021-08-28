@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -49,7 +48,7 @@ func init() {
 		&UIProgressConf{Show: false},
 	}
 	Config.initConfiguration()
-	fmt.Println("CONFIG:", Config)
+	log.Debug("CONFIG:", Config)
 }
 
 // 加载自定义配置，覆盖默认配置
@@ -79,12 +78,12 @@ func (conf *Configuration) initConfiguration() {
 		fieldInfo := t.Field(i)
 		tag := fieldInfo.Tag.Get("json")
 		if value, ok := customMap[tag]; ok {
-			log.Printf("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
+			log.Debug("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
 			valueSet := reflect.ValueOf(value)
 			v.FieldByName(fieldInfo.Name).Set(valueSet.Convert(fieldInfo.Type))
 		}
 	}
-	log.Println("custom config:", conf)
+	log.Debug("custom config:", conf)
 }
 
 func GetCurrentPath() string {

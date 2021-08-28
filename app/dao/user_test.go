@@ -1,12 +1,14 @@
 package dao
 
 import (
+	"fmt"
+	"testing"
+
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type UserTestSuite struct {
@@ -15,23 +17,20 @@ type UserTestSuite struct {
 }
 
 func (suite *UserTestSuite) SetupTest() {
+	fmt.Println("Setup")
 	suite.db = database.TestDB()
-	User.db = suite.db
+	User.DB = database.TestDB()
 }
 
-// TODO: 完成这个测试suite
+func (suite *UserTestSuite) TearDownTest() {
+	fmt.Println("TearDown")
+	database.DropTables(suite.db)
+}
 
 func (suite *UserTestSuite) TestUserDao_GetOne() {
-	suite.Run("get one ok", func(t *testing.T) {
+	suite.T().Run("get one ok", func(t *testing.T) {
 		user := &model.User{Username: "test", Password: "123123"}
-		println(User.db)
-		_, createdUser := User.CreateOne(user)
-		got := User.GetOne(createdUser.ID)
-		assert.Equal(t, user.Username, got.Username)
-	})
-	suite.Run("get one ok", func(t *testing.T) {
-		user := model.User{Username: "test", Password: "123123"}
-		_, createdUser := User.CreateOne(&user)
+		createdUser, _ := User.CreateOne(user)
 		got := User.GetOne(createdUser.ID)
 		assert.Equal(t, user.Username, got.Username)
 	})

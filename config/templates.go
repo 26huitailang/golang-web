@@ -2,12 +2,13 @@
 package config
 
 import (
-	rice "github.com/GeertJohan/go.rice"
 	"html/template"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	rice "github.com/GeertJohan/go.rice"
 
 	"github.com/labstack/echo"
 
@@ -73,7 +74,7 @@ func ReloadTemplates() {
 	if err != nil {
 		log.Fatal("find box: ", err)
 	}
-	log.Debug("templateBox ", templateBox.Name())
+	// log.Debug("templateBox ", templateBox.Name())
 
 	layouts := make([]string, 0)
 	pages := make([]string, 0)
@@ -91,7 +92,7 @@ func ReloadTemplates() {
 		}
 		return nil
 	})
-	log.Info("layouts ", layouts)
+	// log.Info("layouts ", layouts)
 	//layouts, err := filepath.Glob("templates/layouts/*.html")
 	//if err != nil {
 	//	err = errors.Wrap(err, "template")
@@ -116,7 +117,7 @@ func ReloadTemplates() {
 	for _, layout := range layouts {
 		for _, page := range pages {
 			files := append(globalShared, layout, page)
-			log.Info("files", files)
+			// log.Info("files", files)
 			// todo - crawl_folder func call if include is folder
 			layoutBase := filepath.Base(layout)
 			layoutShort := layoutBase[0:strings.LastIndex(layoutBase, ".")]
@@ -126,7 +127,6 @@ func ReloadTemplates() {
 			content := ""
 			for _, file := range files {
 				file = strings.Replace(file, "\\", "/", -1)
-				log.Warn("====", file)
 				tmp, err := templateBox.String(file)
 				if err != nil {
 					log.Fatal(err)

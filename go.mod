@@ -24,7 +24,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.7.0
 	github.com/vbauerster/mpb/v6 v6.0.4
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	gopkg.in/ini.v1 v1.57.0 // indirect
 )

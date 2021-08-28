@@ -1,7 +1,10 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/app/service"
 	"github.com/26huitailang/golang_web/library/response"
 	"github.com/labstack/echo"
 )
@@ -15,8 +18,11 @@ import (
 func Login(c echo.Context) (err error) {
 	req := new(model.ApiLoginReq)
 	if err = c.Bind(req); err != nil {
-		return
+		return response.Json(c, -1, "invalid req params")
 	}
-
-	return response.Json(c, 1, "ok")
+	if ok := service.UserService.Authenticate(req.Username, req.Password); !ok {
+		return response.Json(c, -1, "authenticate failed!")
+	}
+	c.SetCookie(&http.Cookie{Name: "Token", Value: "hello"})
+	return response.Json(c, response.OK, "ok")
 }
