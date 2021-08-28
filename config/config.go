@@ -3,20 +3,22 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/26huitailang/golang_web/constants"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
+
+	"github.com/26huitailang/golang_web/constants"
+	log "github.com/sirupsen/logrus"
 )
 
 var Config *Configuration
 
 type Configuration struct {
 	BasePath    string `json:"base_path"`
+	ConfigPath  string `json:"config_path"`
 	IP          string `json:"ip"`
 	DeployLevel int    `json:"deploy_level"`
 	Port        string `json:"port"`
@@ -33,8 +35,10 @@ type UIProgressConf struct {
 // todo: use cobra to get config
 
 func init() {
-	pwd, _ := os.Getwd()
+	pwd := GetCurrentPath()
+	projectPath := filepath.Dir(pwd)
 	Config = &Configuration{
+		projectPath,
 		pwd,
 		"0.0.0.0",
 		constants.Development,
