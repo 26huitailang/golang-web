@@ -28,6 +28,7 @@ func tables() []interface{} {
 		&model.Suite{},
 		&model.Image{},
 		&model.User{},
+		&model.Session{},
 	}
 }
 

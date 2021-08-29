@@ -1,8 +1,12 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/26huitailang/golang_web/app/dao"
 	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
+	"github.com/26huitailang/golang_web/utils"
 	"github.com/26huitailang/golang_web/utils/mycrypto"
 )
 
@@ -21,4 +25,19 @@ func (s *userService) Authenticate(username, password string) bool {
 	}
 	pwd := mycrypto.Password(password)
 	return pwd.Check(user.Password)
+}
+
+// TODO do tests
+func (s *userService) CreateSession(value string) string {
+	ExpiredAt := time.Now().Add(time.Second * time.Duration(config.Config.SessionExpiredTime))
+	session := &model.Session{
+		Token:     utils.UUID(),
+		Value:     value,
+		ExpiredAt: ExpiredAt,
+	}
+	session, err := dao.Session.CreateOne(session)
+	if err != nil {
+		return ""
+	}
+	return session.Token
 }

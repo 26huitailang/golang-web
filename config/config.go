@@ -16,15 +16,16 @@ import (
 var Config *Configuration
 
 type Configuration struct {
-	BasePath    string `json:"base_path"`
-	ConfigPath  string `json:"config_path"`
-	IP          string `json:"ip"`
-	DeployLevel int    `json:"deploy_level"`
-	Port        string `json:"port"`
-	DB          string `json:"db"`
-	DataPath    string `json:"data_path"`
-	MediaPath   string `json:"media_path"`
-	UIProgress  *UIProgressConf
+	BasePath           string `json:"base_path"`
+	ConfigPath         string `json:"config_path"`
+	IP                 string `json:"ip"`
+	DeployLevel        int    `json:"deploy_level"`
+	Port               string `json:"port"`
+	DB                 string `json:"db"`
+	DataPath           string `json:"data_path"`
+	MediaPath          string `json:"media_path"`
+	SessionExpiredTime int
+	UIProgress         *UIProgressConf
 }
 
 type UIProgressConf struct {
@@ -37,15 +38,16 @@ func init() {
 	pwd := GetCurrentPath()
 	projectPath := filepath.Dir(pwd)
 	Config = &Configuration{
-		projectPath,
-		pwd,
-		"0.0.0.0",
-		constants.Development,
-		":8000",
-		"test.db",
-		"/data",
-		"/data/media",
-		&UIProgressConf{Show: false},
+		BasePath:           projectPath,
+		ConfigPath:         pwd,
+		IP:                 "0.0.0.0",
+		DeployLevel:        constants.Development,
+		Port:               ":8000",
+		DB:                 "test.db",
+		DataPath:           "/data",
+		MediaPath:          "/data/media",
+		SessionExpiredTime: 3600,
+		UIProgress:         &UIProgressConf{Show: false},
 	}
 	Config.initConfiguration()
 	log.Debug("CONFIG:", Config)

@@ -10,7 +10,6 @@ func TestExample(t *testing.T) {
 		name string
 		args args
 	}{
-		// TODO: Add test cases.
 		{"ok", args{&Message{"hello", "a@a.com", []string{"b@b.com", "c@c.com"}, []byte("aaaaaa")}}},
 		{"ok", args{&Message{"hello", "a@a.com", []string{"b@b.com", "c@c.com"}, []byte("To: recipient@example.net\r\n" +
 			"Subject: discount Gophers!\r\n" +

@@ -5,6 +5,7 @@ go 1.14
 require (
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-basic/uuid v1.0.0
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gosuri/uilive v0.0.4 // indirect
