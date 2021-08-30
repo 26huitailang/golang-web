@@ -1,4 +1,4 @@
-package router
+package server
 
 import (
 	"github.com/26huitailang/golang_web/app/api"
