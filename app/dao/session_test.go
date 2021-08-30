@@ -20,9 +20,9 @@ type SessionTestSuite struct {
 
 func (suite *SessionTestSuite) SetupTest() {
 	fmt.Println("Setup")
-	suite.db = database.TestDB()
-	// TODO 每次都要mock不同dao里面的DB，很麻烦
-	Session.DB = database.TestDB()
+	dbStore := &database.DatabaseStore{}
+	database.TestDB()
+	suite.db = dbStore.DB()
 }
 
 func (suite *SessionTestSuite) TearDownTest() {
@@ -38,7 +38,7 @@ func (suite *SessionTestSuite) TestSession_GetOne() {
 		got := Session.GetOne(item.Token)
 		assert.Equal(t, item.Token, got.Token)
 		assert.Equal(t, item.Value, got.Value)
-		assert.Equal(t, item.ExpiredAt, got.ExpiredAt)
+		assert.Equal(t, item.ExpiredAt, got.ExpiredAt) // TODO: 时间存入取出不一致
 	})
 }
 

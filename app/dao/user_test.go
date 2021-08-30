@@ -19,7 +19,6 @@ type UserTestSuite struct {
 func (suite *UserTestSuite) SetupTest() {
 	fmt.Println("Setup")
 	suite.db = database.TestDB()
-	User.DB = database.TestDB()
 }
 
 func (suite *UserTestSuite) TearDownTest() {

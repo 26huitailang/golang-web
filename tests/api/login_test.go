@@ -29,8 +29,8 @@ type LoginTestSuite struct {
 
 func (suite *LoginTestSuite) SetupTest() {
 	fmt.Println("Setup")
-	suite.db = database.TestDB()
-	dao.User.DB = database.TestDB()
+	database.TestDB()
+	suite.db = database.NewDatabaseStore().DB()
 	suite.e = server.NewServer()
 }
 

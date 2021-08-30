@@ -12,13 +12,18 @@ import (
 )
 
 var db *gorm.DB
-var testDb *gorm.DB
+
+type DatabaseStore struct{}
 
 func init() {
 	db = connectDB(db, config.Config.DB)
 }
 
-func DB() *gorm.DB {
+func NewDatabaseStore() *DatabaseStore {
+	return &DatabaseStore{}
+}
+
+func (s *DatabaseStore) DB() *gorm.DB {
 	return db
 }
 
@@ -55,6 +60,6 @@ func DropTables(db *gorm.DB) {
 
 func TestDB() *gorm.DB {
 	dbFile := strings.Join([]string{config.Config.DB, "test"}, "")
-	testDb = connectDB(testDb, dbFile)
-	return testDb
+	db = connectDB(db, dbFile)
+	return db
 }

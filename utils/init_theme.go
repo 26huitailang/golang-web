@@ -2,16 +2,17 @@ package utils
 
 import (
 	"fmt"
-	"github.com/26huitailang/golang_web/app/model"
-	"github.com/26huitailang/golang_web/config"
-	"github.com/26huitailang/golang_web/database"
-	"github.com/jinzhu/gorm"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
+	"github.com/26huitailang/golang_web/database"
+	"github.com/jinzhu/gorm"
+	"github.com/sirupsen/logrus"
 )
 
 type themeInfo struct {
@@ -27,7 +28,7 @@ func InitTheme(conf *config.Configuration) {
 	dir, _ := ioutil.ReadDir(conf.MediaPath)
 	finish := make(chan themeInfo)
 	var wg sync.WaitGroup
-	db := database.DB()
+	db := database.NewDatabaseStore().DB()
 	tx := db.Begin()
 	for _, folder := range dir {
 		if !folder.IsDir() {
