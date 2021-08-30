@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -19,14 +20,22 @@ import (
 func Login(c echo.Context) (err error) {
 	req := new(model.ApiLoginReq)
 	if err = c.Bind(req); err != nil {
-		return response.Json(c, response.REQ_PARAM_INVALID, "invalid req params!")
+		return response.Json(c, response.ReqParamInvalid, "invalid req params!")
 	}
 	if err = c.Validate(req); err != nil {
-		return response.Json(c, response.REQ_PARAM_INVALID, fmt.Sprintf("validated faild: %v", err.Error()))
+		return response.Json(c, response.ReqParamInvalid, fmt.Sprintf("validated faild: %v", err.Error()))
 	}
-	if ok := service.UserService.Authenticate(req.Username, req.Password); !ok {
-		return response.Json(c, response.AUTH_FAILED, "authenticate failed!")
+	ok, user := service.UserService.Authenticate(req.Username, req.Password)
+	if !ok {
+		return response.Json(c, response.AuthFailed, "authenticate failed!")
 	}
-	c.SetCookie(&http.Cookie{Name: "Token", Value: "hello"})
-	return response.Json(c, response.OK, "ok")
+
+	valBytes, err := json.Marshal(&model.SessionValue{Username: user.Username, Nickname: user.Nickname})
+	if err != nil {
+		return response.Json(c, response.AuthCreateSessionFailed, fmt.Sprintf("create session failed: %s", err.Error()))
+	}
+
+	token := service.UserService.CreateSession(string(valBytes))
+	c.SetCookie(&http.Cookie{Name: "Token", Value: token, HttpOnly: true})
+	return response.Json(c, response.OK, "ok", map[string]string{"token": token})
 }
