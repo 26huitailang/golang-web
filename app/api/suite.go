@@ -25,7 +25,7 @@ func (a *suiteRestApi) Get(c echo.Context) (err error) {
 	}
 	var suites []model.Suite
 
-	DB := database.DB()
+	DB := database.NewDatabaseStore().DB()
 	DB.Where("is_like = ?", query.IsLike).Find(&suites)
 	return response.Json(c, 1, "ok", suites)
 }

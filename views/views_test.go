@@ -1,11 +1,12 @@
 package views
 
 import (
-	"github.com/26huitailang/golang_web/app/model"
-	"github.com/26huitailang/golang_web/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/config"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +21,7 @@ func TestThemesHandle(t *testing.T) {
 	// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	h := &Handler{Store: &StubStore{
+	h := &Handler{IThemeStore: &StubStore{
 		themes: []model.Theme{
 			{
 				Name: "Hey Ha",

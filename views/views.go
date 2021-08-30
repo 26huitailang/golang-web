@@ -2,16 +2,16 @@ package views
 
 import (
 	"fmt"
-	"github.com/26huitailang/golang_web/app/model"
-	"github.com/26huitailang/golang_web/database"
-	"github.com/26huitailang/golang_web/utils"
-	"github.com/jinzhu/gorm"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/26huitailang/golang_web/app/model"
+	"github.com/26huitailang/golang_web/database"
+	"github.com/26huitailang/golang_web/utils"
 
 	"github.com/labstack/echo/middleware"
 
@@ -23,21 +23,21 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DataStore interface {
+type IThemeStore interface {
 	GetThemes() []model.Theme
 }
 
 type Handler struct {
-	Store DataStore
+	IThemeStore
+	Store *database.DatabaseStore
 }
 
-type DatabaseStore struct {
-	DB *gorm.DB
+type ThemeStore struct {
 }
 
-func (db *DatabaseStore) GetThemes() []model.Theme {
+func (s *ThemeStore) GetThemes() []model.Theme {
 	var themes []model.Theme
-	db.DB.Order("name").Find(&themes)
+	database.NewDatabaseStore().DB().Order("name").Find(&themes)
 	return themes
 }
 
@@ -47,7 +47,7 @@ func IndexHandle(c echo.Context) (err error) {
 }
 
 func (h *Handler) ThemesHandle(c echo.Context) (err error) {
-	themes := h.Store.GetThemes()
+	themes := h.GetThemes()
 	err = c.Render(http.StatusOK, "layout:themes", themes)
 	if err != nil {
 		panic("render layout:themes error")
@@ -59,7 +59,7 @@ type themeQuery struct {
 	IsRead bool `query:"is_read"`
 }
 
-func ThemeHandle(c echo.Context) (err error) {
+func (h *Handler) ThemeHandle(c echo.Context) (err error) {
 	themeID, err := strconv.Atoi(c.Param("id"))
 	println(themeID, "lwjeofiwjefijwef")
 	queryParams := c.QueryParams()
@@ -74,7 +74,7 @@ func ThemeHandle(c echo.Context) (err error) {
 	var theme model.Theme
 	var suites []model.Suite
 
-	var DB = database.DB()
+	var DB = h.Store.DB()
 
 	DB.Where("id = ?", themeID).First(&theme)
 
@@ -103,7 +103,7 @@ func ThemeHandle(c echo.Context) (err error) {
 	return c.Render(http.StatusOK, "layout:theme", data)
 }
 
-func SuiteHandle(c echo.Context) (err error) {
+func (h *Handler) SuiteHandle(c echo.Context) (err error) {
 	var sutieID int
 	sutieID, err = strconv.Atoi(c.Param("suite_id"))
 	if err != nil {
@@ -113,7 +113,7 @@ func SuiteHandle(c echo.Context) (err error) {
 	var suite model.Suite
 	var images []model.Image
 
-	DB := database.DB()
+	DB := h.Store.DB()
 
 	DB.Where("id = ?", sutieID).Find(&suite)
 	log.Debugf("downloadsuite: %v", suite)
@@ -129,7 +129,7 @@ func SuiteHandle(c echo.Context) (err error) {
 	return c.Render(200, "layout:suite", data)
 }
 
-func SuiteReadHandle(c echo.Context) (err error) {
+func (h *Handler) SuiteReadHandle(c echo.Context) (err error) {
 	var suiteID int
 	suiteID, err = strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -137,7 +137,7 @@ func SuiteReadHandle(c echo.Context) (err error) {
 	}
 	var suite model.Suite
 
-	DB := database.DB()
+	DB := h.Store.DB()
 
 	DB.First(&suite, suiteID)
 	suite.IsRead = !suite.IsRead
@@ -148,7 +148,7 @@ func SuiteReadHandle(c echo.Context) (err error) {
 }
 
 // todo: 时间限制，3s一次
-func SuiteLikeHandle(c echo.Context) (err error) {
+func (h *Handler) SuiteLikeHandle(c echo.Context) (err error) {
 	var suiteID int
 	suiteID, err = strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -156,7 +156,7 @@ func SuiteLikeHandle(c echo.Context) (err error) {
 	}
 	var suite model.Suite
 
-	DB := database.DB()
+	DB := h.Store.DB()
 
 	DB.First(&suite, suiteID)
 	suite.IsLike = !suite.IsLike
@@ -168,8 +168,8 @@ func SuiteLikeHandle(c echo.Context) (err error) {
 }
 
 // InitDBHandle is view to init database depends on local files
-func InitDBHandle(c echo.Context) (err error) {
-	DB := database.DB()
+func (h *Handler) InitDBHandle(c echo.Context) (err error) {
+	DB := h.Store.DB()
 
 	// todo websocket，异步？
 	log.Println("droppig table ...")

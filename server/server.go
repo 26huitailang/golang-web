@@ -5,7 +5,6 @@ import (
 
 	"github.com/26huitailang/golang_web/config"
 	"github.com/26huitailang/golang_web/constants"
-	"github.com/26huitailang/golang_web/router"
 	"github.com/go-playground/validator"
 
 	// "log"
@@ -122,7 +121,7 @@ func NewServer() *echo.Echo {
 	//DB := database.DB()
 	//store := &views.DatabaseStore{DB: DB}
 	//handler := &views.Handler{Store: store}
-	router.Router(e)
+	Router(e)
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
