@@ -11,6 +11,7 @@ BINARY_LINUX=$(BINARY_NAME)_linux
 BINARY_ARM=$(BINARY_LINUX)_arm
 PROFILE=profile
 COVERPROFILE=coverprofile
+COVERAGE_FILE=coverage.html
 LOGFILE=main.log
 REMOTEIP=pi
 REMOTEPATH=pi@$(REMOTEIP):/home/pi/go/golang-web/
@@ -37,7 +38,8 @@ benchmark:
 	$(GOBENCHMARK)
 cover:
 	$(GOTEST) -coverprofile $(COVERPROFILE) ./...
-	$(GOTOOL) cover -html $(COVERPROFILE)
+	$(GOTOOL) cover -html $(COVERPROFILE) -o $(COVERAGE_FILE)
+
 
 # Cross compilation
 build-linux: generate
