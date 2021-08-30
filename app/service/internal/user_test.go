@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/26huitailang/golang_web/app/dao"
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
 	"github.com/26huitailang/golang_web/utils/mycrypto"
@@ -20,15 +19,15 @@ type AuthTestSuite struct {
 func (suite *AuthTestSuite) SetupTest() {
 	fmt.Println("Setup")
 	suite.db = database.TestDB()
-	dao.User.DB = database.TestDB()
 }
+
 func (suite *AuthTestSuite) TearDownTest() {
 	fmt.Println("TearDown")
 	database.DropTables(suite.db)
 }
 
 func tableTestSetup() func() {
-	dao.User.DB = database.TestDB()
+	database.TestDB()
 	return func() {
 		database.DropTables(database.TestDB())
 	}
