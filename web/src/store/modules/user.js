@@ -32,7 +32,7 @@ const mutations = {
 }
 
 const actions = {
-  // user login
+  // user Login
   login({ commit }, userInfo) {
     const { username, password, captcha } = userInfo
     return new Promise((resolve, reject) => {
@@ -57,7 +57,7 @@ const actions = {
       const userID = getUserID()
       console.log('userID', userID)
       if (userID === undefined) {
-        reject('login failed')
+        reject('Login failed')
       }
       getInfo(userID).then(response => {
         const { data } = response

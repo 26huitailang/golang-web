@@ -2,9 +2,12 @@ package server
 
 import (
 	"fmt"
-	"github.com/26huitailang/golang_web/app/api"
+
 	"github.com/26huitailang/golang_web/config"
 	"github.com/26huitailang/golang_web/constants"
+	"github.com/26huitailang/golang_web/router"
+	"github.com/go-playground/validator"
+
 	// "log"
 	"net/http"
 	"os"
@@ -72,9 +75,22 @@ func ws_view(c echo.Context) error {
 	return c.Render(200, "layout:websocket", "")
 }
 
+type CustomValidator struct {
+	validator *validator.Validate
+}
+
+func (cv *CustomValidator) Validate(i interface{}) error {
+	if err := cv.validator.Struct(i); err != nil {
+		println("-=-=-=")
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return nil
+}
+
 func NewServer() *echo.Echo {
 	Init()
 	e := echo.New()
+	e.Validator = &CustomValidator{validator: validator.New()}
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
@@ -106,32 +122,7 @@ func NewServer() *echo.Echo {
 	//DB := database.DB()
 	//store := &views.DatabaseStore{DB: DB}
 	//handler := &views.Handler{Store: store}
-	// profiling
-	// mux = httpprof.WrapRouter(mux)
-	// e.HTTPErrorHandler = customHTTPErrorHandler
-	//e.GET("/", views.IndexHandle)
-	//e.GET("/ws_view/ws", ws_hello)
-	//e.GET("/ws_view", ws_view)
-	//e.GET("/hello/:name", func(c echo.Context) error {
-	//	name := c.Param("name")
-	//	resp := fmt.Sprintf("Hello, %s!", name)
-	//	return c.String(http.StatusOK, resp)
-	//})
-
-	//e.POST("/task/suite", views.TaskSuiteHandle)
-	//e.POST("/task/theme", views.TaskThemeHandle)
-
-	//e.GET("/themes", handler.ThemesHandle)
-	//e.GET("/themes/:id", views.ThemeHandle)
-	e.GET("/suites", api.SuiteRest.Get)
-	//e.GET("/suites/:suite_id", views.SuiteHandle)
-	//e.GET("/suites/:id/doread", views.SuiteReadHandle)
-	//e.GET("/suites/:id/dolike", views.SuiteLikeHandle)
-
-	//devopsGroup := e.Group("/devops")
-	//devopsGroup.POST("/initdb", views.InitDBHandle)
-	//devopsGroup.GET("", views.DevopsHandle)
-	e.Static("/image/*filepath", config.Config.MediaPath)
+	router.Router(e)
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)
