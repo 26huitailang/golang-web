@@ -80,7 +80,7 @@ func (conf *Configuration) initConfiguration() {
 		fieldInfo := t.Field(i)
 		tag := fieldInfo.Tag.Get("json")
 		if value, ok := customMap[tag]; ok {
-			log.Debug("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
+			log.Debugf("tag: [%s %v] replaced by [%v]", tag, v.Field(i).Interface(), value)
 			valueSet := reflect.ValueOf(value)
 			v.FieldByName(fieldInfo.Name).Set(valueSet.Convert(fieldInfo.Type))
 		}
