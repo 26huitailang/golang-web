@@ -17,3 +17,8 @@ type Session struct {
 	Value     string `json:"value"`
 	ExpiredAt time.Time
 }
+
+type SessionValue struct {
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+}

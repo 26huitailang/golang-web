@@ -79,7 +79,7 @@ func ReloadTemplates() {
 	layouts := make([]string, 0)
 	pages := make([]string, 0)
 	templateBox.Walk("", func(path string, info os.FileInfo, err error) error {
-		log.Info(path)
+		//log.Info(path)
 		if !info.IsDir() {
 			if strings.Contains(path, "layouts") {
 				layouts = append(layouts, path)

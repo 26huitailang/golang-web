@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/26huitailang/golang_web/app/service"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -29,8 +30,7 @@ type LoginTestSuite struct {
 
 func (suite *LoginTestSuite) SetupTest() {
 	fmt.Println("Setup")
-	database.TestDB()
-	suite.db = database.NewDatabaseStore().DB()
+	suite.db = database.TestDB()
 	suite.e = server.NewServer()
 }
 
@@ -42,7 +42,7 @@ func (suite *LoginTestSuite) TearDownTest() {
 func (suite *LoginTestSuite) TestLogin() {
 	suite.T().Run("test login ok", func(t *testing.T) {
 		userJSON := `{"username": "test", "password": "123123"}`
-		dao.User.CreateOne(&model.User{Username: "test", Password: mycrypto.Password("123123").Encrypt(nil)})
+		dao.User.CreateOne(&model.User{Username: "test", Nickname: "nickname", Password: mycrypto.Password("123123").Encrypt(nil)})
 		req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(userJSON))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
@@ -57,6 +57,10 @@ func (suite *LoginTestSuite) TestLogin() {
 			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
 			assert.Equal(t, response.OK, resp.Code)
 			assert.Equal(t, "ok", resp.Message)
+			data := resp.Data.(map[string]interface{})
+			sessionVal := service.UserService.GetSession(data["token"].(string))
+			assert.Equal(t, "test", sessionVal.Username)
+			assert.Equal(t, "nickname", sessionVal.Nickname)
 		}
 	})
 	suite.T().Run("test auth failed", func(t *testing.T) {
@@ -74,7 +78,7 @@ func (suite *LoginTestSuite) TestLogin() {
 			assert.Equal(t, http.StatusOK, rec.Code)
 			var resp response.JsonResponse
 			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
-			assert.Equal(t, response.AUTH_FAILED, resp.Code)
+			assert.Equal(t, response.AuthFailed, resp.Code)
 			assert.Equal(t, "authenticate failed!", resp.Message)
 		}
 	})
@@ -93,7 +97,7 @@ func (suite *LoginTestSuite) TestLogin() {
 			assert.Equal(t, http.StatusOK, rec.Code)
 			var resp response.JsonResponse
 			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
-			assert.Equal(t, response.REQ_PARAM_INVALID, resp.Code)
+			assert.Equal(t, response.ReqParamInvalid, resp.Code)
 			assert.GreaterOrEqual(t, "validated failed:", resp.Message)
 		}
 	})
