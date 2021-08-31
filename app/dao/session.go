@@ -20,7 +20,10 @@ func (d *sessionDao) CreateOne(session *model.Session) (*model.Session, error) {
 
 func (d *sessionDao) GetOne(token string) (session *model.Session) {
 	session = &model.Session{}
-	d.DB().Where(&model.Session{Token: token}).First(session)
+	ret := d.DB().Where(&model.Session{Token: token}).First(session)
+	if ret.RowsAffected == 0 {
+		return nil
+	}
 	return session
 }
 

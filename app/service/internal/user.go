@@ -50,6 +50,9 @@ func (s *userService) CreateSession(value string) string {
 
 func (s *userService) GetSession(token string) *model.SessionValue {
 	session := dao.Session.GetOne(token)
+	if session == nil {
+		return nil
+	}
 	if session.ExpiredAt.Before(time.Now()) {
 		log.Warningf("session unmarshal failed: %s %v", session.Value, session.ExpiredAt)
 		return nil
@@ -62,6 +65,6 @@ func (s *userService) GetSession(token string) *model.SessionValue {
 	return &sessionVal
 }
 
-func (s *userService) Logout(token string) error {
-	dao.Session.DeleteOne(token)
+func (s *userService) Logout(token string) {
+	_ = dao.Session.DeleteOne(token)
 }
