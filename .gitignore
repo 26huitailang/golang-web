@@ -26,3 +26,7 @@ config/config_custom.json
 
 # build binaries
 main
+
+# coverage
+coverprofile
+coverage.html
