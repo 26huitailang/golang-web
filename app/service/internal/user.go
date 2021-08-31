@@ -61,3 +61,7 @@ func (s *userService) GetSession(token string) *model.SessionValue {
 	}
 	return &sessionVal
 }
+
+func (s *userService) Logout(token string) error {
+	dao.Session.DeleteOne(token)
+}

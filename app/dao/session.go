@@ -23,3 +23,10 @@ func (d *sessionDao) GetOne(token string) (session *model.Session) {
 	d.DB().Where(&model.Session{Token: token}).First(session)
 	return session
 }
+
+func (d *sessionDao) DeleteOne(token string) (rows int) {
+	session := d.GetOne(token)
+	ret := d.DB().Delete(session)
+	rows = int(ret.RowsAffected)
+	return rows
+}

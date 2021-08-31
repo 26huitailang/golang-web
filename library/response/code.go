@@ -11,4 +11,5 @@ const (
 	AuthCreateSessionFailed
 	AuthCookieInvalid
 	AuthCookieExpired
+	AuthLogoutFailed
 )
