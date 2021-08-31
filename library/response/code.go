@@ -9,4 +9,6 @@ const (
 	AUTH = iota + 10000
 	AuthFailed
 	AuthCreateSessionFailed
+	AuthCookieInvalid
+	AuthCookieExpired
 )

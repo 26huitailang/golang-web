@@ -1,10 +1,33 @@
-package server
+package router
 
 import (
+	"fmt"
+
 	"github.com/26huitailang/golang_web/app/api"
+	"github.com/26huitailang/golang_web/app/service"
 	"github.com/26huitailang/golang_web/config"
+	"github.com/26huitailang/golang_web/library/response"
+	"github.com/26huitailang/golang_web/middleware"
 	"github.com/labstack/echo"
 )
+
+func SessionCheckMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token, err := c.Cookie("token")
+		if err != nil {
+			return response.Json(c, response.AuthCookieInvalid, fmt.Sprintf("get cookie error: %s", err.Error()))
+		}
+		sessionVal := service.UserService.GetSession(token.Value)
+		if sessionVal == nil {
+			return response.Json(c, response.AuthCookieExpired, "null cookie")
+		}
+		// TODO: set user info here
+		cc := c.(*middleware.CustomContext)
+		session := service.UserService.GetSession(token.Value)
+		cc.Session = session
+		return next(cc)
+	}
+}
 
 func Router(e *echo.Echo) {
 	// profiling
@@ -25,7 +48,9 @@ func Router(e *echo.Echo) {
 	//e.GET("/themes", handler.ThemesHandle)
 	//e.GET("/themes/:id", views.ThemeHandle)
 	e.POST("/login", api.Login)
-	e.GET("/suites", api.SuiteRest.Get)
+	g := e.Group("/apiV1")
+	g.Use(SessionCheckMiddleware)
+	g.GET("/suites", api.SuiteRest.Get)
 	//e.GET("/suites/:suite_id", views.SuiteHandle)
 	//e.GET("/suites/:id/doread", views.SuiteReadHandle)
 	//e.GET("/suites/:id/dolike", views.SuiteLikeHandle)
