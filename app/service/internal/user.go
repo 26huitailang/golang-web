@@ -2,14 +2,15 @@ package internal
 
 import (
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/26huitailang/golang_web/app/dao"
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/config"
-	"github.com/26huitailang/golang_web/utils"
-	"github.com/26huitailang/golang_web/utils/mycrypto"
+	"github.com/26huitailang/golang_web/library/mycrypto"
+	"github.com/26huitailang/golang_web/library/utils"
 )
 
 var UserService = &userService{}
