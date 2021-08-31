@@ -30,12 +30,12 @@ func Login(c echo.Context) (err error) {
 		return response.Json(c, response.AuthFailed, "authenticate failed!")
 	}
 
-	valBytes, err := json.Marshal(&model.SessionValue{Username: user.Username, Nickname: user.Nickname})
+	valBytes, err := json.Marshal(&model.SessionValue{ID: user.ID, Username: user.Username, Nickname: user.Nickname})
 	if err != nil {
 		return response.Json(c, response.AuthCreateSessionFailed, fmt.Sprintf("create session failed: %s", err.Error()))
 	}
 
 	token := service.UserService.CreateSession(string(valBytes))
-	c.SetCookie(&http.Cookie{Name: "Token", Value: token, HttpOnly: true})
+	c.SetCookie(&http.Cookie{Name: "token", Value: token, HttpOnly: true})
 	return response.Json(c, response.OK, "ok", map[string]string{"token": token})
 }

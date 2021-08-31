@@ -4,7 +4,9 @@ import (
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
 	"github.com/26huitailang/golang_web/library/response"
+	"github.com/26huitailang/golang_web/middleware"
 	"github.com/labstack/echo"
+	log "github.com/sirupsen/logrus"
 )
 
 // API管理对象
@@ -19,6 +21,8 @@ type suiteRestApi struct{}
 // @router  /suites [GET]
 // @success 200 {object} response.JsonResponse "执行结果"
 func (a *suiteRestApi) Get(c echo.Context) (err error) {
+	cc := c.(*middleware.CustomContext)
+	log.Infof("user visited: %v", cc.Session)
 	query := new(model.SuitesQuery)
 	if err = c.Bind(query); err != nil {
 		return

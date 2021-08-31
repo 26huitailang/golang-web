@@ -5,6 +5,8 @@ import (
 
 	"github.com/26huitailang/golang_web/config"
 	"github.com/26huitailang/golang_web/constants"
+	mymiddleware "github.com/26huitailang/golang_web/middleware"
+	"github.com/26huitailang/golang_web/router"
 	"github.com/go-playground/validator"
 
 	// "log"
@@ -36,16 +38,6 @@ func customHTTPErrorHandler(err error, c echo.Context) {
 	if err := c.File(errorPage); err != nil {
 		c.Logger().Error(err)
 	}
-}
-
-type CustomContext struct {
-	echo.Context
-}
-
-func (c *CustomContext) SetConfig() {
-	log.Infoln("setting config...")
-	c.Set("config", config.Config)
-	log.Infoln("finish set config!")
 }
 
 func ws_hello(c echo.Context) error {
@@ -80,10 +72,14 @@ type CustomValidator struct {
 
 func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.validator.Struct(i); err != nil {
-		println("-=-=-=")
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return nil
+}
+
+func CSRFSkipper(c echo.Context) bool {
+	log.Info(c.Path())
+	return c.Path() == "/login"
 }
 
 func NewServer() *echo.Echo {
@@ -94,7 +90,7 @@ func NewServer() *echo.Echo {
 	e.Use(middleware.Recover())
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			cc := &CustomContext{c}
+			cc := &mymiddleware.CustomContext{c, nil}
 			cc.SetConfig()
 			println("CCCCCCC:", cc.Get("config").(*config.Configuration).Port)
 			return h(cc)
@@ -111,7 +107,11 @@ func NewServer() *echo.Echo {
 	}
 	// e.Use(middleware.CSRF())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
-		TokenLookup: "form:csrf",
+		Skipper:      CSRFSkipper,
+		TokenLookup:  "header:" + echo.HeaderXCSRFToken,
+		ContextKey:   "csrf",
+		CookieName:   "_csrf",
+		CookieMaxAge: 86400,
 	}))
 	// e.Use(middleware.JWT([]byte("secret")))
 
@@ -121,7 +121,7 @@ func NewServer() *echo.Echo {
 	//DB := database.DB()
 	//store := &views.DatabaseStore{DB: DB}
 	//handler := &views.Handler{Store: store}
-	Router(e)
+	router.Router(e)
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)
 	fmt.Printf("serve: http://%s\n", addr)

@@ -19,6 +19,7 @@ type Session struct {
 }
 
 type SessionValue struct {
+	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
 }
