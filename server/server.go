@@ -79,7 +79,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 func CSRFSkipper(c echo.Context) bool {
 	log.Info(c.Path())
-	return c.Path() == "/login"
+	return c.Path() == "/login" || c.Path() == "/logout"
 }
 
 func NewServer() *echo.Echo {
@@ -108,7 +108,7 @@ func NewServer() *echo.Echo {
 	// e.Use(middleware.CSRF())
 	e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 		Skipper:      CSRFSkipper,
-		TokenLookup:  "header:" + echo.HeaderXCSRFToken,
+		TokenLookup:  "header:X-CSRFToken",
 		ContextKey:   "csrf",
 		CookieName:   "_csrf",
 		CookieMaxAge: 86400,

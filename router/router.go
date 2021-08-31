@@ -21,7 +21,6 @@ func SessionCheckMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if sessionVal == nil {
 			return response.Json(c, response.AuthCookieExpired, "null cookie")
 		}
-		// TODO: set user info here
 		cc := c.(*middleware.CustomContext)
 		session := service.UserService.GetSession(token.Value)
 		cc.Session = session
@@ -48,9 +47,11 @@ func Router(e *echo.Echo) {
 	//e.GET("/themes", handler.ThemesHandle)
 	//e.GET("/themes/:id", views.ThemeHandle)
 	e.POST("/login", api.Login)
-	g := e.Group("/apiV1")
+	g := e.Group("")
 	g.Use(SessionCheckMiddleware)
-	g.GET("/suites", api.SuiteRest.Get)
+	g.POST("/logout", api.Logout)
+	apiV1 := g.Group("/apiV1")
+	apiV1.GET("/suites", api.SuiteRest.Get)
 	//e.GET("/suites/:suite_id", views.SuiteHandle)
 	//e.GET("/suites/:id/doread", views.SuiteReadHandle)
 	//e.GET("/suites/:id/dolike", views.SuiteLikeHandle)

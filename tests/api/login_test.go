@@ -104,6 +104,31 @@ func (suite *LoginTestSuite) TestLogin() {
 	})
 }
 
+func (suite *LoginTestSuite) TestLogout() {
+	suite.T().Run("logout ok", func(t *testing.T) {
+		userJSON := `{"username": "test", "password": "123123"}`
+		dao.User.CreateOne(&model.User{Username: "test", Nickname: "nickname", Password: mycrypto.Password("123123").Encrypt(nil)})
+		token := service.UserService.CreateSession(userJSON)
+		req := httptest.NewRequest(http.MethodGet, "/", strings.NewReader(userJSON))
+		req.AddCookie(&http.Cookie{Name: "token", Value: token})
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := suite.e.NewContext(req, rec)
+		c.SetPath("/logout")
+		c.SetRequest(req)
+
+		// Assertions
+		if assert.NoError(t, api.Logout(c)) {
+			assert.Equal(t, http.StatusOK, rec.Code)
+			var resp response.JsonResponse
+			_ = json.Unmarshal(rec.Body.Bytes(), &resp)
+			assert.Equal(t, response.OK, resp.Code)
+			assert.Equal(t, "logout succeed", resp.Message)
+			sessionVal := service.UserService.GetSession(token)
+			assert.Equal(t, (*model.SessionValue)(nil), sessionVal)
+		}
+	})
+}
 func TestLoginTestSuite(t *testing.T) {
 	suite.Run(t, new(LoginTestSuite))
 }

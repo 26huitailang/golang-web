@@ -40,15 +40,11 @@ func Login(c echo.Context) (err error) {
 	return response.Json(c, response.OK, "ok", map[string]string{"token": token})
 }
 
-// TODO: logout
 func Logout(c echo.Context) (err error) {
 	token, _ := c.Cookie("token")
 	if token == nil {
 		return response.Json(c, response.OK, "ok")
 	}
-	err = service.UserService.Logout(token.Value)
-	if err != nil {
-		return response.Json(c, response.AuthLogoutFailed, fmt.Sprintf("logout failed: %s", err.Error()))
-	}
+	service.UserService.Logout(token.Value)
 	return response.Json(c, response.OK, "logout succeed")
 }

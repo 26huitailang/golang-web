@@ -29,11 +29,11 @@ func (s *DatabaseStore) DB() *gorm.DB {
 
 func tables() []interface{} {
 	return []interface{}{
+		&model.Session{},
 		&model.Theme{},
 		&model.Suite{},
 		&model.Image{},
 		&model.User{},
-		&model.Session{},
 	}
 }
 
