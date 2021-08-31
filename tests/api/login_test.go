@@ -3,19 +3,20 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/26huitailang/golang_web/app/service"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/26huitailang/golang_web/app/service"
+
 	"github.com/26huitailang/golang_web/app/api"
 	"github.com/26huitailang/golang_web/app/dao"
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
+	"github.com/26huitailang/golang_web/library/mycrypto"
 	"github.com/26huitailang/golang_web/library/response"
 	"github.com/26huitailang/golang_web/server"
-	"github.com/26huitailang/golang_web/utils/mycrypto"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"

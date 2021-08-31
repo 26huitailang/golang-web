@@ -11,7 +11,6 @@ import (
 
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
-	"github.com/26huitailang/golang_web/utils"
 
 	"github.com/labstack/echo/middleware"
 
@@ -178,7 +177,7 @@ func (h *Handler) InitDBHandle(c echo.Context) (err error) {
 	DB.AutoMigrate(model.Theme{}, model.Suite{}, model.Image{})
 	log.Println("start init db ...")
 	// todo: 这里因为用了session，所以在提交前也是看不到任何数据的
-	go utils.InitTheme(config.Config)
+	go downloadsuite.InitTheme(config.Config)
 	return c.Redirect(302, "/")
 }
 
@@ -224,7 +223,7 @@ func TaskSuiteHandle(c echo.Context) (err error) {
 		suite := downloadsuite.NewSuite(operator)
 		suite.Download()
 		// 重新加载进去
-		utils.InitTheme(config.Config)
+		downloadsuite.InitTheme(config.Config)
 	}()
 	return c.String(http.StatusAccepted, "task downloadsuite sent ...")
 }
@@ -251,7 +250,7 @@ func TaskThemeHandle(c echo.Context) (err error) {
 		t := downloadsuite.NewTheme(url, config.Config.MediaPath)
 		t.DownloadOneTheme()
 		fmt.Printf("%v", t)
-		utils.InitTheme(config.Config)
+		downloadsuite.InitTheme(config.Config)
 	}()
 	return c.String(http.StatusAccepted, "task theme sent ...")
 }

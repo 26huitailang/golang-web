@@ -7,7 +7,7 @@ import (
 
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
-	"github.com/26huitailang/golang_web/utils"
+	"github.com/26huitailang/golang_web/library/utils"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
