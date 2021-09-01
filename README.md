@@ -55,6 +55,12 @@ RUN apt install gcc-arm-linux-gnueabi -y
 RUN apt clean
 ```
 
+## Swagger
+
+```bash
+go get github.com/swaggo/swag/cmd/swag
+```
+
 ## Sup
 
 Super simple deployment tool - think of it like 'make' for a network of servers https://pressly.github.io/sup
