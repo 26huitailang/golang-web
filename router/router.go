@@ -6,9 +6,11 @@ import (
 	"github.com/26huitailang/golang_web/app/api"
 	"github.com/26huitailang/golang_web/app/service"
 	"github.com/26huitailang/golang_web/config"
+	_ "github.com/26huitailang/golang_web/docs"
 	"github.com/26huitailang/golang_web/library/response"
 	"github.com/26huitailang/golang_web/middleware"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 func SessionCheckMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -46,12 +48,15 @@ func Router(e *echo.Echo) {
 
 	//e.GET("/themes", handler.ThemesHandle)
 	//e.GET("/themes/:id", views.ThemeHandle)
+
+	// Swagger
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
 	e.POST("/login", api.Login)
-	g := e.Group("")
+	e.POST("/logoout", api.Logout, SessionCheckMiddleware)
+	g := e.Group("/apiV1")
 	g.Use(SessionCheckMiddleware)
-	g.POST("/logout", api.Logout)
-	apiV1 := g.Group("/apiV1")
-	apiV1.GET("/suites", api.SuiteRest.Get)
+	g.GET("/suites", api.SuiteRest.Get)
 	//e.GET("/suites/:suite_id", views.SuiteHandle)
 	//e.GET("/suites/:id/doread", views.SuiteReadHandle)
 	//e.GET("/suites/:id/dolike", views.SuiteLikeHandle)

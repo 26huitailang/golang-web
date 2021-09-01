@@ -18,7 +18,7 @@ import (
 	"github.com/26huitailang/golang_web/library/response"
 	"github.com/26huitailang/golang_web/server"
 	"github.com/jinzhu/gorm"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

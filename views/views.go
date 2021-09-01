@@ -12,9 +12,9 @@ import (
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/database"
 
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/26huitailang/golang_web/app/service/downloadsuite"
 	"github.com/26huitailang/golang_web/config"

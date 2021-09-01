@@ -10,7 +10,7 @@ import (
 
 	rice "github.com/GeertJohan/go.rice"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
