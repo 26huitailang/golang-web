@@ -17,6 +17,10 @@ REMOTEIP=pi
 REMOTEPATH=pi@$(REMOTEIP):/home/pi/go/golang-web/
 DOCKERTAG=golang:1.13-stretch
 
+swagger:
+	swag init
+	echo "run server"
+	echo "then browser open: http://localhost:8001/swagger/index.html"
 generate:
 	$(GOCMD) generate ./...
 all: generate test build
@@ -32,8 +36,7 @@ clean:
 	rm -f $(COVERPROFILE)
 	rm -f $(LOGFILE)
 run:
-	$(GOBUILD) -o $(BINARY_NAME) -v
-	./$(BINARY_NAME)
+	go run cmd/gws/main.go server
 benchmark:
 	$(GOBENCHMARK)
 cover:

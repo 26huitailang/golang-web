@@ -8,14 +8,14 @@ import (
 	"github.com/26huitailang/golang_web/app/model"
 	"github.com/26huitailang/golang_web/app/service"
 	"github.com/26huitailang/golang_web/library/response"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
-// @summary theme list api
-// @tags    theme service
+// @summary login api
+// @tags    user service
 // @produce json
-// @param   entity  body model.UserApiSignUpReq true "注册请求"
-// @router  /suites [GET]
+// @param   entity  body model.ApiLoginReq true "登录请求"
+// @router  /login [POST]
 // @success 200 {object} response.JsonResponse "执行结果"
 func Login(c echo.Context) (err error) {
 	req := new(model.ApiLoginReq)
@@ -40,6 +40,11 @@ func Login(c echo.Context) (err error) {
 	return response.Json(c, response.OK, "ok", map[string]string{"token": token})
 }
 
+// @summary logout
+// @tags    user service
+// @produce json
+// @router  /logout [GET]
+// @success 200 {object} response.JsonResponse "执行结果"
 func Logout(c echo.Context) (err error) {
 	token, _ := c.Cookie("token")
 	if token == nil {

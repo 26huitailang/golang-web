@@ -1,8 +1,9 @@
 package response
 
 import (
-	"github.com/labstack/echo"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 // 数据返回通用JSON数据结构

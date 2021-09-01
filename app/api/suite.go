@@ -5,7 +5,7 @@ import (
 	"github.com/26huitailang/golang_web/database"
 	"github.com/26huitailang/golang_web/library/response"
 	"github.com/26huitailang/golang_web/middleware"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -14,11 +14,11 @@ var SuiteRest = new(suiteRestApi)
 
 type suiteRestApi struct{}
 
-// @summary theme list api
-// @tags    theme service
+// @summary suite api
+// @tags    suite
 // @produce json
-// @param   entity  body model.UserApiSignUpReq true "注册请求"
-// @router  /suites [GET]
+// @param   entity query model.SuitesQuery true "注册请求"
+// @router  /apiV1/suites [GET]
 // @success 200 {object} response.JsonResponse "执行结果"
 func (a *suiteRestApi) Get(c echo.Context) (err error) {
 	cc := c.(*middleware.CustomContext)

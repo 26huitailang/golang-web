@@ -1,0 +1,74 @@
+definitions:
+  model.ApiLoginReq:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  response.JsonResponse:
+    properties:
+      code:
+        description: 错误码((0:成功, 1:失败, >1:错误码))
+        type: integer
+      data:
+        description: 返回数据(业务接口定义具体数据结构)
+        type: object
+      message:
+        description: 提示信息
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /apiV1/suites:
+    get:
+      parameters:
+      - in: query
+        name: isLike
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 执行结果
+          schema:
+            $ref: '#/definitions/response.JsonResponse'
+      summary: suite api
+      tags:
+      - suite
+  /login:
+    post:
+      parameters:
+      - description: 登录请求
+        in: body
+        name: entity
+        required: true
+        schema:
+          $ref: '#/definitions/model.ApiLoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 执行结果
+          schema:
+            $ref: '#/definitions/response.JsonResponse'
+      summary: login api
+      tags:
+      - user service
+  /logout:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 执行结果
+          schema:
+            $ref: '#/definitions/response.JsonResponse'
+      summary: logout
+      tags:
+      - user service
+swagger: "2.0"
