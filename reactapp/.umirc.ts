@@ -7,10 +7,17 @@ export default defineConfig({
   },
   routes: [
     { path: '/', component: '@/pages/index' },
-    { path: '/Login', component: '@/pages/Login' },
+    { path: '/login', component: '@/pages/Login' },
   ],
   fastRefresh: {},
   history: {
     type: 'hash'
+  },
+  proxy: {
+    '/login': {
+      target: 'http://localhost:8001',
+      pathRewrite: {'': ''},
+      changeOrigin: true,
+    }
   }
 });
