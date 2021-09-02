@@ -1,15 +1,10 @@
-# umi project
+# README
 
-## Getting Started
+## 组件划分
 
-Install dependencies,
-
-```bash
-$ yarn
-```
-
-Start the dev server,
-
-```bash
-$ yarn start
-```
+- App组件
+    - TodoList组件
+        - Input
+        - List
+        - Item
+    
