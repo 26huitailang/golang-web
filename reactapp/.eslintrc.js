@@ -17,7 +17,7 @@ module.exports = {
     Babel: true,
     React: true,
   },
-  parser: 'babel-eslint',
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaFeatures: {
       jsx: true,
@@ -97,6 +97,16 @@ module.exports = {
     'react/forbid-prop-types': 0,
     // 关闭default-props检查
     'react/require-default-props': 0,
-    "import/extensions": {}
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
+      },
+
+    ],
   },
 };
