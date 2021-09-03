@@ -1,8 +1,8 @@
-import React, {FC, ReactElement, useCallback, useEffect, useReducer, useState} from 'react'
+import React, { FC, ReactElement, useCallback, useEffect, useReducer, useState } from 'react'
 import TdInput from "./Input";
 import TdList from "./List";
-import {ACTION_TYPE, IState, ITodo} from "./typings";
-import {todoReducer} from "./reducer";
+import { ACTION_TYPE, IState, ITodo } from "./typings";
+import { todoReducer } from "./reducer";
 
 const initialState: IState = {
     todoList: []
@@ -29,7 +29,7 @@ const TodoList: FC = (): ReactElement => {
                 addTodo={addTodo}
                 todoList={state.todoList}
             />
-            <TdList todoList={state.todoList}/>
+            <TdList todoList={state.todoList} />
         </div>
     )
 }
