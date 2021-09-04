@@ -1,4 +1,5 @@
 import React, { FC, ReactElement, useState } from 'react';
+import AuthApi from '../../api/auth';
 
 const Login: FC = (): ReactElement => {
   const [username, setUsername] = useState('');
@@ -6,6 +7,11 @@ const Login: FC = (): ReactElement => {
   const handleSubmit = (event: any) => {
     event.preventDefault();
     console.log(username, password);
+    AuthApi.login({ username, password }).then((response) => {
+      console.log(response);
+    }).catch((error) => {
+      console.log(error);
+    });
     // TODO 账户密码校验
     // todo 请求服务器，获取token，变更app的认证状态
   };

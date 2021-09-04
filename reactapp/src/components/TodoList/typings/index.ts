@@ -13,6 +13,7 @@ export interface IAction {
     payload: ITodo | number,
 }
 
+// eslint-disable-next-line no-shadow
 export enum ACTION_TYPE {
     ADD_TODO = 'addTodo',
     REMOVE_TODO='removeTodo',

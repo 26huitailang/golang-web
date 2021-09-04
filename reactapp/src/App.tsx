@@ -3,7 +3,7 @@ import Login from './components/Login';
 import TodoList from './components/TodoList';
 
 function App() {
-  const authed = localStorage.getItem("authed")
+  const authed = localStorage.getItem('authed');
 
   return (
     <div className="App">
