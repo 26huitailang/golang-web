@@ -3,7 +3,8 @@ import { AxiosRequest, CustomResponse } from './typings';
 
 class Abstract {
     // 外部传入的baseUrl
-    protected baseURL: string | undefined = process.env.REACT_APP_BASEURL;
+    // protected baseURL: string | undefined = process.env.REACT_APP_BASEURL;
+    protected baseURL: string | undefined = '';
     // 自定义header头
     // eslint-disable-next-line @typescript-eslint/ban-types
     protected headers: object= {

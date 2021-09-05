@@ -2,12 +2,14 @@ package server
 
 import (
 	"fmt"
-
 	"github.com/26huitailang/golang_web/config"
 	"github.com/26huitailang/golang_web/constants"
 	mymiddleware "github.com/26huitailang/golang_web/middleware"
 	"github.com/26huitailang/golang_web/router"
-	"github.com/go-playground/validator"
+	"github.com/go-playground/locales/zh"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 
 	// "log"
 	"net/http"
@@ -68,11 +70,25 @@ func ws_view(c echo.Context) error {
 
 type CustomValidator struct {
 	validator *validator.Validate
+	trans     ut.Translator
 }
 
+var validate *validator.Validate
+
 func (cv *CustomValidator) Validate(i interface{}) error {
+	//en := en2.New()
 	if err := cv.validator.Struct(i); err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		log.Errorf("Validate error: %s", err.Error())
+		errV, ok := err.(validator.ValidationErrors)
+		if !ok {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		validatedErrors := errV.Translate(cv.trans)
+		errInfo := make([]string, 0)
+		for _, v := range validatedErrors {
+			errInfo = append(errInfo, v)
+		}
+		return echo.NewHTTPError(http.StatusBadRequest, errInfo)
 	}
 	return nil
 }
@@ -85,7 +101,18 @@ func CSRFSkipper(c echo.Context) bool {
 func NewServer() *echo.Echo {
 	Init()
 	e := echo.New()
-	e.Validator = &CustomValidator{validator: validator.New()}
+
+	// validator, trans
+	zhTrans := zh.New()
+	uni := ut.New(zhTrans, zhTrans)
+	trans, ok := uni.GetTranslator("zh")
+	if !ok {
+		log.Fatalf("uni.GetTranslator(%s) filed", "zh")
+	}
+	validate = validator.New()
+	zh_translations.RegisterDefaultTranslations(validate, trans)
+	e.Validator = &CustomValidator{validator: validate, trans: trans}
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {

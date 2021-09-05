@@ -1,31 +1,31 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { proxy } = require('http-proxy-middleware');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 module.exports = function (app) {
-  app.use(proxy(
+  app.use(createProxyMiddleware(
     '/apiV1',
     {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8001',
       changeOrigin: true,
     },
   ));
-  app.use(proxy(
+  app.use(createProxyMiddleware(
     '/login',
     {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8001',
       changeOrigin: true,
-      pathRewrite: {
-        '/login': '/login',
-      },
+      // pathRewrite: {
+      //   '/login': '/login',
+      // },
     },
   ));
-  app.use(proxy('/logout',
+  app.use(createProxyMiddleware('/logout',
     {
-      target: 'http://localhost:8080',
+      target: 'http://localhost:8001',
       changeOrigin: true,
     }));
 };

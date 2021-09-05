@@ -1,7 +1,7 @@
 {
   "ip": "127.0.0.1",
   "deploy_level": 0,
-  "port": ":8080",
+  "port": ":8001",
   "data_path": ".",
   "media_path": "."
 }

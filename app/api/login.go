@@ -23,7 +23,7 @@ func Login(c echo.Context) (err error) {
 		return response.Json(c, response.ReqParamInvalid, "invalid req params!")
 	}
 	if err = c.Validate(req); err != nil {
-		return response.Json(c, response.ReqParamInvalid, fmt.Sprintf("validated faild: %v", err.Error()))
+		return response.Json(c, response.ReqParamInvalid, err.(*echo.HTTPError).Message)
 	}
 	ok, user := service.UserService.Authenticate(req.Username, req.Password)
 	if !ok {
@@ -32,12 +32,12 @@ func Login(c echo.Context) (err error) {
 
 	valBytes, err := json.Marshal(&model.SessionValue{ID: user.ID, Username: user.Username, Nickname: user.Nickname})
 	if err != nil {
-		return response.Json(c, response.AuthCreateSessionFailed, fmt.Sprintf("create session failed: %s", err.Error()))
+		return response.Json(c, response.AuthFailed, fmt.Sprintf("create session failed: %s", err.Error()))
 	}
 
 	token := service.UserService.CreateSession(string(valBytes))
 	c.SetCookie(&http.Cookie{Name: "token", Value: token, HttpOnly: true})
-	return response.Json(c, response.OK, "ok", map[string]string{"token": token})
+	return response.Json(c, response.OK, "", map[string]string{"token": token})
 }
 
 // @summary logout
