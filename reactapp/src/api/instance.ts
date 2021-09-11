@@ -2,12 +2,12 @@ import axios, { AxiosRequestConfig } from 'axios';
 import { Method } from './typings';
 
 interface PendingType {
-    url?: string;
-    method?: Method;
-    params: any;
-    data: any;
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    cancel: Function;
+  url?: string;
+  method?: Method;
+  params: any;
+  data: any;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  cancel: Function;
 }
 
 const pending: Array<PendingType> = [];
@@ -27,9 +27,9 @@ instance.interceptors.request.use(
 // 响应拦截器
 instance.interceptors.response.use(
   (response) => {
-    const { code } = response.data;
+    const { code, message } = response.data;
     switch (code) {
-      case [123, 123]:
+      case code !== 1000:
         break;
       default:
         break;

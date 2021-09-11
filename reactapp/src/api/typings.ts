@@ -28,10 +28,12 @@ export interface AxiosResponse {
 }
 
 export interface CustomResponse {
+    readonly success: boolean;
     readonly code: number;
     readonly message: string;
     data: any;
     origin?: any;
+    details?: any;
 }
 
 export interface GetDemo {
