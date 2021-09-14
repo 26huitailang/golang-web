@@ -1,5 +1,6 @@
 import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import {message} from 'antd';
+import {history} from '../router';
 
 export let publicIp: string;
 publicIp = process.env.NODE_ENV === 'development' ? 'http://localhost:8001' : '';
@@ -71,7 +72,7 @@ instance.interceptors.response.use((response: AxiosResponse) => {
     message.error(tips)
     if (error.response.status === 401) {    // token或者登陆失效情况下跳转到登录页面，根据实际情况，在这里可以根据不同的响应错误结果，做对应的事。这里我以401判断为例
       // 针对框架跳转到登陆页面
-      this.props.history.push(LOGIN);
+      history.push(LOGIN)
     }
     return Promise.reject(error)
   } else {

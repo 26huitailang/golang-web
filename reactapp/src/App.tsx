@@ -1,27 +1,35 @@
-import React, {ReactElement} from 'react';
-import logo from './logo.svg';
+import React, {FC, ReactElement} from 'react';
 import './App.css';
+import {Link, Route, Router} from 'react-router-dom';
+import MyRouter from './router';
 
-function App (): ReactElement {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo"/>
-        <p>
-                    Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-                    Learn React
-        </a>
-      </header>
-    </div>
-  );
+function Home (props: any) {
+  console.log('home', props)
+  return (<div>Home</div>)
 }
 
-export default App;
+function Hello () {
+  return (<div>Hello</div>)
+}
 
+function World (props: any) {
+  console.log('world', props)
+  return (<div>World</div>)
+}
+
+const App: FC = (): ReactElement => (
+  <div className="App">
+    <MyRouter>
+      <div>
+        <Link to="/">Home</Link>
+        <Link to="/hello">Hello</Link>
+        <Link to="/world">World</Link>
+      </div>
+      <Route path="/" key='home' exact component={Home}/>
+      <Route path="/hello" key='hello' component={Hello}/>
+      <Route path="/world" key='world' component={World}/>
+    </MyRouter>
+  </div>
+)
+
+export default App;
