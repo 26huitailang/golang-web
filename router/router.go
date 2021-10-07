@@ -44,7 +44,6 @@ func Router(e *echo.Echo) {
 	//})
 
 	//e.POST("/task/suite", views.TaskSuiteHandle)
-	//e.POST("/task/theme", views.TaskThemeHandle)
 
 	//e.GET("/themes", handler.ThemesHandle)
 	//e.GET("/themes/:id", views.ThemeHandle)
@@ -53,10 +52,11 @@ func Router(e *echo.Echo) {
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.POST("/login", api.Login)
-	e.POST("/logoout", api.Logout, SessionCheckMiddleware)
+	e.POST("/logout", api.Logout, SessionCheckMiddleware)
 	g := e.Group("/apiV1")
 	g.Use(SessionCheckMiddleware)
 	g.GET("/suites", api.SuiteRest.Get)
+	e.POST("/task/theme", api.TaskThemeApi.Post)
 	//e.GET("/suites/:suite_id", views.SuiteHandle)
 	//e.GET("/suites/:id/doread", views.SuiteReadHandle)
 	//e.GET("/suites/:id/dolike", views.SuiteLikeHandle)
