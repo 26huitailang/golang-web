@@ -1,7 +1,7 @@
 import React, {FC, ReactElement} from 'react';
 import './App.css';
 import {HashRouter, Link, Route, Switch} from 'react-router-dom';
-import {Login} from './components/login';
+import Login from './components/login';
 
 function Home (props: any) {
   console.log('home', props)
