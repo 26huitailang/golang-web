@@ -1,7 +1,7 @@
 import React, {FC, ReactElement} from 'react';
 import './App.css';
-import {Link, Route, Router} from 'react-router-dom';
-import MyRouter from './router';
+import {HashRouter, Link, Route, Switch} from 'react-router-dom';
+import {Login} from './components/login';
 
 function Home (props: any) {
   console.log('home', props)
@@ -19,16 +19,18 @@ function World (props: any) {
 
 const App: FC = (): ReactElement => (
   <div className="App">
-    <MyRouter>
-      <div>
-        <Link to="/">Home</Link>
-        <Link to="/hello">Hello</Link>
-        <Link to="/world">World</Link>
-      </div>
-      <Route path="/" key='home' exact component={Home}/>
-      <Route path="/hello" key='hello' component={Hello}/>
-      <Route path="/world" key='world' component={World}/>
-    </MyRouter>
+    <div>
+      <Link to="/">Home</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/hello">Hello</Link>
+      <Link to="/world">World</Link>
+      <Switch>
+        <Route path="/" key='home' exact component={Home}/>
+        <Route path="/login" key='login' exact component={Login}/>
+        <Route path="/hello" key='hello' component={Hello}/>
+        <Route path="/world" key='world' component={World}/>
+      </Switch>
+    </div>
   </div>
 )
 

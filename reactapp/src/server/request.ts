@@ -97,7 +97,7 @@ export const get = (url: string, params: never, config = {}) => new Promise((res
 })
 
 /* 统一封装post请求  */
-export const post = (url: string, data: never, config = {}) => new Promise((resolve, reject) => {
+export const post = (url: string, data: never, config = {}): Promise<any> => new Promise((resolve, reject) => {
   instance({
     method: 'post',
     url,
