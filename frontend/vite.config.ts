@@ -15,6 +15,7 @@ import {
 } from 'unocss'
 
 const pathSrc = path.resolve(__dirname, 'src')
+console.log(pathSrc);
 
 // https://vitejs.dev/config/
 export default defineConfig({
