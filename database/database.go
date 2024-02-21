@@ -16,7 +16,7 @@ var db *gorm.DB
 type DatabaseStore struct{}
 
 func init() {
-	db = connectDB(db, config.Config.DB)
+	//db = connectDB(db, config.Config.DB)
 }
 
 func NewDatabaseStore() *DatabaseStore {

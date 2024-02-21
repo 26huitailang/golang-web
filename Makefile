@@ -23,7 +23,7 @@ swagger:
 	echo "then browser open: http://localhost:8001/swagger/index.html"
 generate:
 	$(GOCMD) generate ./...
-all: generate test build
+#all: generate test build
 build: generate
 	$(GOBUILD) -o $(BINARY_NAME) -v
 test:
@@ -85,3 +85,11 @@ remote-start:
 # deploy raspberry
 deploy-raspberry: docker-build-arm remote-stop scp remote-start
 	echo deploy done!
+
+BINARY := web
+
+.PHONY: all
+all: $(BINARY)
+
+$(BINARY):
+	go build -o ./bin/$@ ./cmd/gws/.

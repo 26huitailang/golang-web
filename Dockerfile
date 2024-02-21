@@ -19,7 +19,6 @@ WORKDIR /go/cache
 COPY go.mod .
 COPY go.sum .
 RUN go mod download
-RUN go get github.com/GeertJohan/go.rice/rice
 
 WORKDIR /go/release
 COPY . .

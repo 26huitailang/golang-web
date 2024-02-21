@@ -26,8 +26,6 @@ import (
 // 初始化文件结构
 func Init() {
 	log.SetLevel(log.DebugLevel)
-	// 模板预加载
-	config.ReloadTemplates()
 }
 
 func customHTTPErrorHandler(err error, c echo.Context) {
@@ -140,14 +138,6 @@ func NewServer() *echo.Echo {
 		CookieName:   "_csrf",
 		CookieMaxAge: 86400,
 	}))
-	// e.Use(middleware.JWT([]byte("secret")))
-
-	var EchoTemplate = &config.Template{}
-	e.Renderer = EchoTemplate
-
-	//DB := database.DB()
-	//store := &views.DatabaseStore{DB: DB}
-	//handler := &views.Handler{Store: store}
 	router.Router(e)
 
 	addr := fmt.Sprintf("%s%s", config.Config.IP, config.Config.Port)

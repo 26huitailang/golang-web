@@ -30,3 +30,5 @@ main
 # coverage
 coverprofile
 coverage.html
+bin/*
+!bin/.gitkeep

@@ -28,7 +28,6 @@ jobs:
         GO111MODULE: on
       run: |
         go mod download
-        go get github.com/GeertJohan/go.rice/rice
 
     - name: Build
       run: |
