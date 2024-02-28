@@ -32,3 +32,4 @@ coverprofile
 coverage.html
 bin/*
 !bin/.gitkeep
+/.devcontainer/bash_history
